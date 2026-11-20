@@ -1267,7 +1267,7 @@ button { cursor: pointer; color: inherit; }
   .stats { grid-template-columns: repeat(3, 1fr); }
 }
 @media(max-width: 620px) {
-  html, body { touch-action: manipulation; }
+  html, body, button, .chest, .modal, .modalback { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   #rollBtn { min-height: 54px; padding: 16px 18px; font-size: 13px; letter-spacing: 1px; }
 }
 </style>
@@ -2404,6 +2404,42 @@ if(state.pending)showUnique(state.pending);
   // Run immediately after fonts/layout settle
   requestAnimationFrame(fitToViewport);
   setTimeout(fitToViewport, 250);
+})();
+</script>
+<script>
+(function() {
+  if (window.matchMedia && !window.matchMedia('(max-width: 620px)').matches) return;
+  let lastTapTime = 0;
+  let multiTouchActive = false;
+
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches && e.touches.length > 1) {
+      multiTouchActive = true;
+    } else if (!e.touches || e.touches.length === 1) {
+      multiTouchActive = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    if (multiTouchActive || (e.touches && e.touches.length > 0)) {
+      if (!e.touches || e.touches.length === 0) multiTouchActive = false;
+      return;
+    }
+    const now = Date.now();
+    const dt = now - lastTapTime;
+    lastTapTime = now;
+    if (dt > 0 && dt < 320) {
+      // Prevent browser double-tap zoom on rapid spam taps while keeping click/tap events working
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      // Re-dispatch a clean click if a button/chest was tapped so spam clicking still registers
+      const target = e.target && e.target.closest ? e.target.closest('button, .chest, [role="button"]') : null;
+      if (target && !target.disabled) {
+        target.click();
+      }
+    }
+  }, { passive: false });
 })();
 </script>
 </body>
