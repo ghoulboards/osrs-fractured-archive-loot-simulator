@@ -226,6 +226,78 @@ replaceOnce('mobile bar script', '\n</body>', `
 </script>
 </body>`);
 
+// 15. v19 bug: render() subtracted the pending unique from counts/GP, but a pending unique isn't added to
+//     either until it's claimed — so the first purple showed negative GP and a repeat unique showed 0 owned.
+replaceOnce('pending unique: no count subtraction',
+  "\nif(pendingName){displayCounts[pendingName]=Math.max(0,(displayCounts[pendingName]||0)-1);if(displayCounts[pendingName]===0)delete displayCounts[pendingName];}\n",
+  "\n");
+replaceOnce('pending unique: no GP subtraction',
+  'const visibleGp=state.gp-(state.pending?(state.pending.price||0):0);',
+  'const visibleGp=state.gp;');
+
+// 16. state.history got one entry per drop forever (~400k objects after a 100k batch) but is only used to
+//     find the pending unique near the front, so keep it bounded.
+replaceOnce('bounded history',
+  'state.history.unshift({item,qty,raid:state.raids,source});',
+  'state.history.unshift({item,qty,raid:state.raids,source});if(state.history.length>500)state.history.length=500;');
+
+// 17. Persist the session in localStorage so a refresh or revisit keeps progress; Reset Session clears it.
+replaceOnce('footer storage note',
+  ' · Session data stays in this browser tab.</div>',
+  ' · Progress is saved in this browser; Reset Session clears it.</div>');
+replaceOnce('reset clears storage',
+  "addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;",
+  "addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearSavedSession();");
+replaceOnce('save + restore session', 'initChestSprites();render();syncButtons();', `// ---- Saved session (localStorage) ----
+// Saves stats, collection, last raid, any unopened unique, and settings after every render/setting change
+// (debounced so long batches don't hammer storage). Items are stored by name and re-linked on load.
+// Everything is wrapped in try/catch: private windows or blocked storage just fall back to an unsaved session.
+var SAVE_KEY='fractured-archive-sim:v1',saveTimer=null;
+const itemByName=n=>uniques.find(x=>x.name===n)||tertiaries.find(x=>x.name===n)||standard.find(x=>x.name===n)||null;
+function saveSession(){
+ saveTimer=null;
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:1,savedAt:Date.now(),
+  raids:state.raids,purples:state.purples,dry:state.dry,bestDry:state.bestDry,gp:state.gp,
+  counts:state.counts,recentAdded:state.recentAdded,owned:[...state.owned],
+  pending:state.pending?state.pending.name:null,
+  lastRaid:state.lastRaid.map(x=>({n:x.item.name,q:x.qty,s:x.source,p:!!x.pending})),
+  settings:{team:$('team').value,contrib:$('contrib').value,mode:state.mode,batchCount:$('batchCount').value,autoDelay:$('autoDelay').value,sound:$('sound').checked,prices:$('prices').checked}
+ }));}catch(e){}
+}
+function scheduleSave(){if(!saveTimer)saveTimer=setTimeout(saveSession,300);}
+function flushSave(){if(saveTimer){clearTimeout(saveTimer);saveSession();}}
+function clearSavedSession(){clearTimeout(saveTimer);saveTimer=null;try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function restoreSavedSession(){
+ let s=null;try{s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}
+ if(!s||s.v!==1)return;
+ const num=v=>typeof v==='number'&&isFinite(v)&&v>=0?v:0;
+ const hasOption=(sel,v)=>[...sel.options].some(o=>o.value===String(v));
+ const st=s.settings||{};
+ if(hasOption($('team'),st.team))$('team').value=st.team;
+ const c=parseFloat(st.contrib);if(c>0&&c<=100)$('contrib').value=st.contrib;else setDefaultContribution();
+ const bc=parseInt(st.batchCount,10);if(bc>=1&&bc<=100000)$('batchCount').value=bc;
+ if(hasOption($('autoDelay'),st.autoDelay))$('autoDelay').value=st.autoDelay;
+ if(typeof st.sound==='boolean')$('sound').checked=st.sound;
+ if(typeof st.prices==='boolean')$('prices').checked=st.prices;
+ updateRates();
+ if(['single','batch','auto'].includes(st.mode))setMode(st.mode);
+ state.raids=num(s.raids);state.purples=num(s.purples);state.dry=num(s.dry);state.bestDry=num(s.bestDry);state.gp=num(s.gp);
+ const known=obj=>Object.fromEntries(Object.entries(obj||{}).filter(([k,v])=>itemByName(k)&&num(v)>0));
+ state.counts=known(s.counts);state.recentAdded=known(s.recentAdded);
+ state.owned=new Set((s.owned||[]).filter(n=>itemByName(n)));
+ state.lastRaid=(s.lastRaid||[]).map(x=>{const item=itemByName(x&&x.n);return item?Object.assign({item,qty:num(x.q)||1,source:String(x.s||'')},x.p?{pending:true}:{}):null;}).filter(Boolean);
+ const pend=s.pending&&itemByName(s.pending);
+ if(pend&&uniques.includes(pend)){state.pending=pend;state.history.unshift({item:pend,qty:1,raid:state.raids,source:'Unique chest',pending:true});}
+}
+['team','contrib','batchCount','autoDelay','sound','prices'].forEach(id=>{$(id).addEventListener('change',scheduleSave);$(id).addEventListener('input',scheduleSave);});
+$('mode').addEventListener('click',scheduleSave);$('resetContribBtn').addEventListener('click',scheduleSave);
+$('prices').addEventListener('change',render); // GP toggle previously had no visible effect until the next roll
+addEventListener('pagehide',flushSave);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
+restoreSavedSession();
+initChestSprites();render();syncButtons();
+if(state.pending)showUnique(state.pending); // an unopened unique survives a refresh: show its chest again`);
+replaceOnce('render schedules save', 'function render(){', 'function render(){scheduleSave();');
+
 // Sanity: nothing left that talks to the Wiki API at runtime.
 for (const needle of ['api.php', 'resolveItemSprite', 'hydrateLootSprites', 'wikiFileCache', 'spriteStatus', 'fetch(']) {
   if (html.includes(needle)) throw new Error(`leftover reference: ${needle}`);

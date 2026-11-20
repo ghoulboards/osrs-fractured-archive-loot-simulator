@@ -1317,7 +1317,7 @@ button { cursor: pointer; color: inherit; }
 </aside>
 </div>
 
-<div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Item &amp; chest sprites from the OSRS Wiki · Session data stays in this browser tab.</div>
+<div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Item &amp; chest sprites from the OSRS Wiki · Progress is saved in this browser; Reset Session clears it.</div>
 </div>
 
 <!-- Phone-only roll bar: mirrors the sidebar controls so rolling is always one tap away -->
@@ -1459,7 +1459,7 @@ function finalizeRollAdded(inCurrentRollSet){
   if(!inCurrentRollSet.has(key))delete state.recentAdded[key];
  }
 }
-function addItem(item,qty=1,source='Standard loot',inCurrentRollSet=null) {state.counts[item.name]=(state.counts[item.name]||0)+qty;state.gp+=item.price*qty;if(inCurrentRollSet)noteRollAdded(item.name,qty,inCurrentRollSet);if(item.kind==='unique'||item.kind==='tertiary'||item.kind==='fragment')state.owned.add(item.name);state.history.unshift({item,qty,raid:state.raids,source});state.lastRaid.push({item,qty,source});}
+function addItem(item,qty=1,source='Standard loot',inCurrentRollSet=null) {state.counts[item.name]=(state.counts[item.name]||0)+qty;state.gp+=item.price*qty;if(inCurrentRollSet)noteRollAdded(item.name,qty,inCurrentRollSet);if(item.kind==='unique'||item.kind==='tertiary'||item.kind==='fragment')state.owned.add(item.name);state.history.unshift({item,qty,raid:state.raids,source});if(state.history.length>500)state.history.length=500;state.lastRaid.push({item,qty,source});}
 function weightedStandard(){let total=standard.reduce((s,x)=>s+x.weight,0),r=Math.random()*total;for(const item of standard){r-=item.weight;if(r<0)return item;}return standard[standard.length-1]}
 function pickUnique(){let r=Math.random()*15;for(const u of uniques){r-=u.weight;if(r<0)return u;}return uniques[0]}
 function runTertiaries(rolledSet){let drops=[];if(chance(10)){const c=tertiaries[0];addItem(c,1,'Tertiary',rolledSet);drops.push(c)}if(!state.owned.has(tertiaries[1].name)&&chance(15)){const c=tertiaries[1];addItem(c,1,'Tertiary',rolledSet);drops.push(c)}const frags=tertiaries.filter(x=>x.kind==='fragment'&&!state.owned.has(x.name));if(frags.length&&chance(14)){const c=frags[randInt(0,frags.length-1)];addItem(c,1,'Tertiary',rolledSet);drops.push(c)}if(chance(750)){const c=tertiaries[6];addItem(c,1,'Pet',rolledSet);drops.push(c)}return drops}
@@ -1476,12 +1476,11 @@ function stopAuto(interrupt=false){clearInterval(state.timer);if(interrupt&&stat
 function syncButtons(){$('pauseBtn').disabled=!state.running||state.paused;$('resumeBtn').disabled=!state.running||!state.paused;$('rollBtn').disabled=state.running||!!state.pending;}
 $('rollBtn').addEventListener('click',()=>{if(state.pending)return;if(state.mode==='single'){oneRoll();return;}state.running=true;state.paused=false;syncButtons();if(state.mode==='batch'){state.batchRemaining=Math.max(1,Math.min(100000,parseInt($('batchCount').value)||1));$('runStatus').textContent=`Batch running · ${state.batchRemaining} raids queued` ;continueBatch();}else{scheduleAuto();}});
 $('pauseBtn').addEventListener('click',()=>{state.paused=true;clearInterval(state.timer);state.running=true;$('runStatus').textContent='Simulation paused.';syncButtons()});$('resumeBtn').addEventListener('click',()=>{state.paused=false;state.running=true;syncButtons();if(state.mode==='batch')continueBatch();else if(state.mode==='auto')scheduleAuto()});
-$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});$('modal').classList.remove('show','purple-event');$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
-function render(){const d=getPersonalDenom();
+$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearSavedSession();clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});$('modal').classList.remove('show','purple-event');$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
+function render(){scheduleSave();const d=getPersonalDenom();
 const pendingName=state.pending?state.pending.name:null;
 const displayCounts=Object.assign({},state.counts);
-if(pendingName){displayCounts[pendingName]=Math.max(0,(displayCounts[pendingName]||0)-1);if(displayCounts[pendingName]===0)delete displayCounts[pendingName];}
-$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp-(state.pending?(state.pending.price||0):0);$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;const hUrl=spriteUrl(uniqueDropEntry.item);if(hUrl){if(hImg.getAttribute('src')!==hUrl){hImg.onerror=()=>{hImg.style.display='none';};hImg.src=hUrl;}hImg.style.display='block';}else{hImg.style.display='none';}}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
+$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;const hUrl=spriteUrl(uniqueDropEntry.item);if(hUrl){if(hImg.getAttribute('src')!==hUrl){hImg.onerror=()=>{hImg.style.display='none';};hImg.src=hUrl;}hImg.style.display='block';}else{hImg.style.display='none';}}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
  const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>{
  const hiddenUnique=!!x.pending;
  const displayName=hiddenUnique?'Mystery unique':x.item.name;
@@ -1654,7 +1653,54 @@ function playSound(type) {
 }
 // Progress element is deliberately kept inside the settings panel.
 const progress=document.createElement('div');progress.className='progress';progress.innerHTML='<i id="progressBar"></i>';const status=$('runStatus');status.parentNode.insertBefore(progress,status.nextSibling);
+// ---- Saved session (localStorage) ----
+// Saves stats, collection, last raid, any unopened unique, and settings after every render/setting change
+// (debounced so long batches don't hammer storage). Items are stored by name and re-linked on load.
+// Everything is wrapped in try/catch: private windows or blocked storage just fall back to an unsaved session.
+var SAVE_KEY='fractured-archive-sim:v1',saveTimer=null;
+const itemByName=n=>uniques.find(x=>x.name===n)||tertiaries.find(x=>x.name===n)||standard.find(x=>x.name===n)||null;
+function saveSession(){
+ saveTimer=null;
+ try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:1,savedAt:Date.now(),
+  raids:state.raids,purples:state.purples,dry:state.dry,bestDry:state.bestDry,gp:state.gp,
+  counts:state.counts,recentAdded:state.recentAdded,owned:[...state.owned],
+  pending:state.pending?state.pending.name:null,
+  lastRaid:state.lastRaid.map(x=>({n:x.item.name,q:x.qty,s:x.source,p:!!x.pending})),
+  settings:{team:$('team').value,contrib:$('contrib').value,mode:state.mode,batchCount:$('batchCount').value,autoDelay:$('autoDelay').value,sound:$('sound').checked,prices:$('prices').checked}
+ }));}catch(e){}
+}
+function scheduleSave(){if(!saveTimer)saveTimer=setTimeout(saveSession,300);}
+function flushSave(){if(saveTimer){clearTimeout(saveTimer);saveSession();}}
+function clearSavedSession(){clearTimeout(saveTimer);saveTimer=null;try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function restoreSavedSession(){
+ let s=null;try{s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}
+ if(!s||s.v!==1)return;
+ const num=v=>typeof v==='number'&&isFinite(v)&&v>=0?v:0;
+ const hasOption=(sel,v)=>[...sel.options].some(o=>o.value===String(v));
+ const st=s.settings||{};
+ if(hasOption($('team'),st.team))$('team').value=st.team;
+ const c=parseFloat(st.contrib);if(c>0&&c<=100)$('contrib').value=st.contrib;else setDefaultContribution();
+ const bc=parseInt(st.batchCount,10);if(bc>=1&&bc<=100000)$('batchCount').value=bc;
+ if(hasOption($('autoDelay'),st.autoDelay))$('autoDelay').value=st.autoDelay;
+ if(typeof st.sound==='boolean')$('sound').checked=st.sound;
+ if(typeof st.prices==='boolean')$('prices').checked=st.prices;
+ updateRates();
+ if(['single','batch','auto'].includes(st.mode))setMode(st.mode);
+ state.raids=num(s.raids);state.purples=num(s.purples);state.dry=num(s.dry);state.bestDry=num(s.bestDry);state.gp=num(s.gp);
+ const known=obj=>Object.fromEntries(Object.entries(obj||{}).filter(([k,v])=>itemByName(k)&&num(v)>0));
+ state.counts=known(s.counts);state.recentAdded=known(s.recentAdded);
+ state.owned=new Set((s.owned||[]).filter(n=>itemByName(n)));
+ state.lastRaid=(s.lastRaid||[]).map(x=>{const item=itemByName(x&&x.n);return item?Object.assign({item,qty:num(x.q)||1,source:String(x.s||'')},x.p?{pending:true}:{}):null;}).filter(Boolean);
+ const pend=s.pending&&itemByName(s.pending);
+ if(pend&&uniques.includes(pend)){state.pending=pend;state.history.unshift({item:pend,qty:1,raid:state.raids,source:'Unique chest',pending:true});}
+}
+['team','contrib','batchCount','autoDelay','sound','prices'].forEach(id=>{$(id).addEventListener('change',scheduleSave);$(id).addEventListener('input',scheduleSave);});
+$('mode').addEventListener('click',scheduleSave);$('resetContribBtn').addEventListener('click',scheduleSave);
+$('prices').addEventListener('change',render); // GP toggle previously had no visible effect until the next roll
+addEventListener('pagehide',flushSave);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
+restoreSavedSession();
 initChestSprites();render();syncButtons();
+if(state.pending)showUnique(state.pending); // an unopened unique survives a refresh: show its chest again
 </script>
 <script>
 (function() {

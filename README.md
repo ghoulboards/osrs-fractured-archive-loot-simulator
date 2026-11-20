@@ -20,6 +20,7 @@ A browser-based loot simulator for **The Fractured Archive** raid in Old School 
 - **Tertiary drops:** elite clues, the Archivist's folio, elemental fragments, and the Orion pet.
 - **Session stats:** dry streak, purple rate, GP estimates for uniques and standard drops, a collection log, and CSV export.
 - **Session loot totals:** sorted by GP value, with a "+N" badge on whatever the latest raid added.
+- **Saved progress:** your stats, collection log, last raid, settings, and even an unopened unique chest are saved in your browser's `localStorage`, so a refresh or a later visit picks up where you left off. **Reset Session** clears it. Each browser and each site address keeps its own save, and nothing is sent anywhere.
 - **Real item and chest sprites,** stored in this repo. The page makes no calls to the OSRS Wiki at runtime.
 - **Works on phones.** At 900px wide or narrower, the layout becomes a single column with larger text and buttons, and a roll bar stays fixed at the bottom of the screen.
 
