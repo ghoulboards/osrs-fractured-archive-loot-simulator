@@ -48,7 +48,7 @@ Each patch must match its spot in the file exactly once. If a new design changes
 
 ## Data sources
 
-Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The solo and duo personal rates are adjusted to 1/17 (the duo team rate is 1/8.5). GP values come from an estimated Grand Exchange price snapshot for uniques and standard drops.
+Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The last check against the wiki was revision 15405292 (November 2026). Solo and duo both have a 1/17 team rate, so in a duo your personal rate is 1/34 at an even contribution split. GP values come from an estimated Grand Exchange price snapshot for uniques and standard drops.
 
 ## Disclaimer
 

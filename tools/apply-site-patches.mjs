@@ -298,6 +298,27 @@ initChestSprites();render();syncButtons();
 if(state.pending)showUnique(state.pending); // an unopened unique survives a refresh: show its chest again`);
 replaceOnce('render schedules save', 'function render(){', 'function render(){scheduleSave();');
 
+// 18. Drop-rate corrections, checked against the OSRS Wiki chest page (revision 15405292, Nov 2026).
+//     The wiki's "1/17 for solo and duos" is the overall team rate; duo personal is 1/34 at an even split.
+replaceOnce('rates comment',
+  '// Rates and quantities are based on the OSRS Wiki chest page (with duo personal rate adjusted to 1/17 -> team rate 1/8.5).',
+  '// Rates and quantities match the OSRS Wiki chest page (rev 15405292, Nov 2026): solo and duo both have a 1/17 team rate,\n// so a duo player\'s personal rate is 1/34 at an even contribution split. Personal rate = team rate / contribution share.');
+replaceOnce('duo personal rate (reference table)',
+  'const teamDenom={1:17,2:17,',
+  'const teamDenom={1:17,2:34,');
+replaceOnce('duo team rate',
+  'const teamTeamDenom={1:17,2:8.5,',
+  'const teamTeamDenom={1:17,2:17,');
+replaceOnce('ascension shards quantity',
+  "['Ascension shards',55,90,98,",
+  "['Ascension shards',55,91,95,");
+
+// 19. The contribution box shows the even split rounded to 2 decimals (16.67% for 6 players), which made the
+//     personal rate read 1/50.99 and 1/55.98 instead of the wiki's 1/51 and 1/56. Treat the rounded even split as exact.
+replaceOnce('exact even-split rate',
+  ' if(pct<=0)return Infinity;\n return baseTeamDenom/(pct/100);\n}',
+  ' if(pct<=0)return Infinity;\n const equalPct=100/teamSize;\n const share=Math.abs(pct-equalPct)<0.006?equalPct:pct; // 16.67 typed/shown -> exact 16.666…\n return baseTeamDenom/(share/100);\n}');
+
 // Sanity: nothing left that talks to the Wiki API at runtime.
 for (const needle of ['api.php', 'resolveItemSprite', 'hydrateLootSprites', 'wikiFileCache', 'spriteStatus', 'fetch(']) {
   if (html.includes(needle)) throw new Error(`leftover reference: ${needle}`);
