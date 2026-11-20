@@ -1,0 +1,32 @@
+# The Fractured Archive — Personal Loot Simulator
+
+A browser-based loot simulator for **The Fractured Archive** raid in Old School RuneScape. Roll chests, chase purples, and track your collection log, all in a single static page.
+
+**▶ Play it here:** https://ghoulboards.github.io/osrs-fractured-archive-loot-simulator/
+
+## Features
+
+- **Team-size and contribution-aware purple rates.** Pick a team of 1–8 and set your contribution %. Your personal unique rate is worked out from the team rate.
+- **Three roll modes:**
+  - *Single*: one raid per click.
+  - *Batch*: up to 100,000 raids at once.
+  - *Auto*: rolls on a timer.
+
+  Every mode pauses when you hit a purple so you can open the unique chest yourself.
+- **Weighted unique table:** Rondache, Zorya's tome, Horn of Bran, Ascension crossbows, Obligator.
+- **Standard loot table:** three rolls per non-purple raid, with a 1/51 chance of ×5 quantity on each roll.
+- **Tertiary drops:** elite clues, the Archivist's folio, elemental fragments, and the Orion pet.
+- **Session stats:** dry streak, purple rate, GP estimate for uniques, a collection log, and CSV export.
+- **Real item sprites,** loaded live from the [OSRS Wiki](https://oldschool.runescape.wiki/) API. Text icons are shown if the Wiki can't be reached.
+
+## Running locally
+
+There is no build step and nothing to install. Open `index.html` in any modern browser.
+
+## Data sources
+
+Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The duo personal rate is adjusted to 1/17 (a team rate of 1/8.5). GP values are a snapshot of Wiki prices for uniques only.
+
+## Disclaimer
+
+This is an independent fan-made project. It is not affiliated with or endorsed by Jagex Ltd. Old School RuneScape and all related names and assets are trademarks of Jagex Ltd. Item and chest sprites are loaded from the OSRS Wiki.
