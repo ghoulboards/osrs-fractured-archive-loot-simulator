@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>The Fractured Archive — Personal Loot Simulator</title>
+<link rel="icon" type="image/png" href="images/items/rondache.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Roboto+Mono:wght@400;500;600;700&display=swap');
 
@@ -735,11 +736,13 @@ button { cursor: pointer; color: inherit; }
   place-items: center;
   z-index: 30;
   padding: 18px;
+  overflow-y: auto;
 }
 .modalback.show { display: grid; }
 
 .modal {
   width: min(740px, 95vw);
+  margin: auto;
   min-height: 520px;
   border: 2px solid var(--bark-light);
   border-radius: 16px;
@@ -1464,8 +1467,8 @@ function stopAuto(interrupt=false){clearInterval(state.timer);if(interrupt){$('r
 function syncButtons(){$('pauseBtn').disabled=!state.running||state.paused;$('resumeBtn').disabled=!state.running||!state.paused;$('rollBtn').disabled=state.running||!!state.pending;}
 $('rollBtn').addEventListener('click',()=>{if(state.pending)return;if(state.mode==='single'){oneRoll();return;}state.running=true;state.paused=false;syncButtons();if(state.mode==='batch'){state.batchRemaining=Math.max(1,Math.min(100000,parseInt($('batchCount').value)||1));$('runStatus').textContent=`Batch running · ${state.batchRemaining} raids queued` ;continueBatch();}else{scheduleAuto();}});
 $('pauseBtn').addEventListener('click',()=>{state.paused=true;clearInterval(state.timer);state.running=true;$('runStatus').textContent='Simulation paused.';syncButtons()});$('resumeBtn').addEventListener('click',()=>{state.paused=false;state.running=true;syncButtons();if(state.mode==='batch')continueBatch();else if(state.mode==='auto')scheduleAuto()});
-$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});$('modal').classList.remove('show','purple-event');$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
-function render(){const d=getPersonalDenom();
+$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearSavedSession();clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});$('modal').classList.remove('show','purple-event');$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
+function render(){scheduleSave();const d=getPersonalDenom();
 const displayCounts=Object.assign({},state.counts);
 $('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;resolveItemSprite(uniqueDropEntry.item).then(url=>{if(hImg.dataset.forItem===uniqueDropEntry.item.name&&url){hImg.src=url;hImg.style.display='block';}else{hImg.style.display='none';}});}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
  const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>{
@@ -1491,13 +1494,49 @@ $('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(sta
 const entries=Object.entries(displayCounts).sort((a,b)=>{const itemA=allItems.find(x=>x.name===a[0])||{};const itemB=allItems.find(x=>x.name===b[0])||{};const valA=getItemPrice(itemA)*a[1];const valB=getItemPrice(itemB)*b[1];return valB-valA||b[1]-a[1];});b.innerHTML=entries.length?entries.slice(0,80).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};const estTotal=getItemPrice(item)*count;const added=state.recentAdded[name]||0;const addedBadge=added>0?` <span class="loot-added">+${fmt(added)}</span>`:'';const metaText=!showPrices?'GP estimates hidden':estTotal>0?'Est. '+gp(estTotal)+' GP total':'Untradeable / 0 GP';const isUnique=item.kind==='unique';return `<div class="logrow${isUnique?' purple-drop':''}"><div class="looticon">${lootIconHTML(item)}</div><div><div class="lootname">${esc(name)} (${fmt(count)})${addedBadge}</div><div class="lootmeta">${metaText}</div></div><div class="tag${isUnique?' purple':''}">${fmt(count)}</div></div>`}).join(''):'<div class="empty">Your accumulated loot will appear here.</div>';
  hydrateLootSprites();
 }
-// Resolve real inventory sprites through the OSRS Wiki MediaWiki API.
+// Local repo sprites first (images/items/ & images/chests/), with OSRS Wiki API fallback if missing/offline.
 const WIKI_API='https://oldschool.runescape.wiki/api.php';
 const wikiFileCache=new Map();
 const wikiPageCache=new Map();
 const itemSpriteCache=new Map();
+const localItemUrlCache=new Map();
 const spriteRequested=new Set(), spriteLoadedNames=new Set();
 let spriteLoaded=0, spriteExpected=0;
+
+const spriteSlug=n=>String(n||'').toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function localItemCandidates(item){
+ const n=item?.name||'';
+ const slug=spriteSlug(n);
+ const list=[];
+ if(slug)list.push(`images/items/${slug}.png`,`images/items/${slug}.webp`);
+ if(item?.file){
+  const fSlug=spriteSlug(item.file.replace(/\.[^.]+$/,''));
+  if(fSlug&&fSlug!==slug)list.push(`images/items/${fSlug}.png`,`images/items/${fSlug}.webp`);
+ }
+ return [...new Set(list)];
+}
+function probeLocalImage(url){
+ return new Promise(resolve=>{
+  const tester=new Image();
+  tester.onload=()=>resolve(url);
+  tester.onerror=()=>resolve(null);
+  tester.src=url;
+ });
+}
+async function resolveLocalItemSprite(item){
+ const key=item?.name||'';
+ if(!key)return null;
+ if(localItemUrlCache.has(key))return localItemUrlCache.get(key);
+ const promise=(async()=>{
+  for(const candidate of localItemCandidates(item)){
+   const ok=await probeLocalImage(candidate);
+   if(ok)return ok;
+  }
+  return null;
+ })();
+ localItemUrlCache.set(key,promise);
+ return promise;
+}
 function itemImageCandidates(item){
  const n=item.name||'',c=[];
  if(item.file)c.push(item.file);
@@ -1558,16 +1597,39 @@ async function resolveWikiPageImage(item){
 }
 async function resolveItemSprite(item){
  if(itemSpriteCache.has(item.name))return itemSpriteCache.get(item.name);
- const promise=(async()=>{const files=itemImageCandidates(item);await resolveWikiFiles(files);for(const f of files){const u=wikiFileCache.get(fileKey(f));if(u)return u;}return await resolveWikiPageImage(item);})();
+ const promise=(async()=>{
+  const localUrl=await resolveLocalItemSprite(item);
+  if(localUrl)return localUrl;
+  const files=itemImageCandidates(item);
+  await resolveWikiFiles(files);
+  for(const f of files){const u=wikiFileCache.get(fileKey(f));if(u)return u;}
+  return await resolveWikiPageImage(item);
+ })();
  itemSpriteCache.set(item.name,promise);return promise;
 }
-function updateSpriteStatus(){const el=$('spriteStatus');if(el)el.textContent=spriteExpected?`ITEM SPRITES · ${spriteLoaded}/${spriteExpected} LOADED`:'ITEM SPRITES · CONNECTING';}
+function updateSpriteStatus(){const el=$('spriteStatus');if(el)el.textContent=spriteExpected?`ITEM SPRITES · ${spriteLoaded}/${spriteExpected} LOADED`:'ITEM SPRITES · LOCAL + WIKI';}
 function hydrateLootSprites(root=document){
  root.querySelectorAll('img[data-loot-sprite]').forEach(img=>{
   if(img.dataset.loading==='1'||img.dataset.loaded==='1')return;
   img.dataset.loading='1';const item=allItems.find(x=>x.name===img.dataset.lootSprite);
   if(!item){img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
   if(!spriteRequested.has(item.name)){spriteRequested.add(item.name);spriteExpected=spriteRequested.size;}updateSpriteStatus();
+  const quickLocal=localItemCandidates(item)[0];
+  if(quickLocal&&!localItemUrlCache.has(item.name)){
+   img.onload=()=>{img.dataset.loaded='1';img.dataset.loading='';localItemUrlCache.set(item.name,quickLocal);itemSpriteCache.set(item.name,Promise.resolve(quickLocal));if(!spriteLoadedNames.has(item.name)){spriteLoadedNames.add(item.name);spriteLoaded=spriteLoadedNames.size;}updateSpriteStatus();};
+   img.onerror=()=>{
+    img.onerror=null;
+    resolveItemSprite(item).then(url=>{
+     if(!img.isConnected)return;
+     if(!url){img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
+     img.onload=()=>{img.dataset.loaded='1';img.dataset.loading='';if(!spriteLoadedNames.has(item.name)){spriteLoadedNames.add(item.name);spriteLoaded=spriteLoadedNames.size;}updateSpriteStatus();};
+     img.onerror=()=>{img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';};
+     img.src=url;
+    });
+   };
+   img.src=quickLocal;
+   return;
+  }
   resolveItemSprite(item).then(url=>{
    if(!img.isConnected)return;
    if(!url){img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
@@ -1584,16 +1646,29 @@ async function setItemImage(img,item){
  else{img.style.display='none';$('uniqueFallback').style.display='block';}
 }
 async function initChestSprites(){
- const files=[
+ const localChests={
+  closed:'images/chests/closed.png',
+  open:'images/chests/open.png',
+  standard:'images/chests/standard.webp'
+ };
+ const wikiFiles=[
   'Chest (The Fractured Archive, unique, closed).png',
   'Chest (The Fractured Archive, unique, opened).png',
   'Chest (The Fractured Archive, standard, mine).png',
   'Chest (The Fractured Archive, standard, mine).webp'
  ];
- await resolveWikiFiles(files);
- const closedUrl=wikiFileCache.get(fileKey(files[0]));
- const openUrl=wikiFileCache.get(fileKey(files[1]));
- const stdUrl=wikiFileCache.get(fileKey(files[2]))||wikiFileCache.get(fileKey(files[3]))||'https://oldschool.runescape.wiki/images/Chest_%28The_Fractured_Archive%2C_standard%2C_mine%29.webp?7ebc3';
+ const [lClosed,lOpen,lStd]=await Promise.all([
+  probeLocalImage(localChests.closed),
+  probeLocalImage(localChests.open),
+  probeLocalImage(localChests.standard)
+ ]);
+ let closedUrl=lClosed, openUrl=lOpen, stdUrl=lStd;
+ if(!closedUrl||!openUrl||!stdUrl){
+  await resolveWikiFiles(wikiFiles);
+  if(!closedUrl)closedUrl=wikiFileCache.get(fileKey(wikiFiles[0]));
+  if(!openUrl)openUrl=wikiFileCache.get(fileKey(wikiFiles[1]));
+  if(!stdUrl)stdUrl=wikiFileCache.get(fileKey(wikiFiles[2]))||wikiFileCache.get(fileKey(wikiFiles[3]))||'https://oldschool.runescape.wiki/images/Chest_%28The_Fractured_Archive%2C_standard%2C_mine%29.webp?7ebc3';
+ }
 
  document.querySelectorAll('.chest').forEach(chest=>{
   if(!closedUrl||!openUrl)return;
@@ -1623,7 +1698,8 @@ async function initChestSprites(){
  });
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function exportCSV(){const rows=[['Item','Quantity','Category','Estimated GP each','Estimated GP total'],...Object.entries(state.counts).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};const unitPrice=getItemPrice(item);return [name,count,item.kind||'standard',unitPrice,unitPrice*count]})];const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='fractured-archive-loot.csv';a.click();URL.revokeObjectURL(a.href)}$('exportBtn').addEventListener('click',exportCSV);
+function exportCSV(){const rows=[['Item','Quantity','Category','Estimated GP each','Estimated GP total'],...Object.entries(state.counts).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};const unitPrice=getItemPrice(item);return [name,count,item.kind||'standard',unitPrice,unitPrice*count]})];const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('
+');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='fractured-archive-loot.csv';a.click();URL.revokeObjectURL(a.href)}$('exportBtn').addEventListener('click',exportCSV);
 let audioCtx;
 function playSound(type) {
   if (!$('sound').checked) return;
@@ -1803,7 +1879,85 @@ async function initLivePrices(){
   if(hintEl)hintEl.textContent='GP totals use hardcoded OSRS GE fallback values because the live price feed could not be reached.';
  }
 }
-initChestSprites();initLivePrices();render();syncButtons();
+
+// ---- Saved session (localStorage) ----
+var SAVE_KEY='fractured-archive-sim:v26',saveTimer=null;
+const itemByName=n=>allItems.find(x=>x.name===n)||null;
+function saveSession(){
+ saveTimer=null;
+ try{
+  localStorage.setItem(SAVE_KEY,JSON.stringify({
+   v:1,
+   savedAt:Date.now(),
+   raids:state.raids,
+   purples:state.purples,
+   dry:state.dry,
+   bestDry:state.bestDry,
+   gp:state.gp,
+   counts:state.counts,
+   recentAdded:state.recentAdded,
+   owned:[...state.owned],
+   pending:state.pending?state.pending.name:null,
+   lastRaid:state.lastRaid.map(x=>({n:x.item.name,q:x.qty,s:x.source,p:!!x.pending,fx:!!x.fiveX})),
+   settings:{
+    team:$('team').value,
+    contrib:$('contrib').value,
+    mode:state.mode,
+    batchCount:$('batchCount').value,
+    autoDelay:$('autoDelay').value,
+    sound:$('sound').checked,
+    prices:$('prices').checked
+   }
+  }));
+ }catch(e){}
+}
+function scheduleSave(){if(!saveTimer)saveTimer=setTimeout(saveSession,300);}
+function flushSave(){if(saveTimer){clearTimeout(saveTimer);saveSession();}}
+function clearSavedSession(){clearTimeout(saveTimer);saveTimer=null;try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function restoreSavedSession(){
+ let s=null;try{s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');}catch(e){}
+ if(!s||s.v!==1)return;
+ const num=v=>typeof v==='number'&&isFinite(v)&&v>=0?v:0;
+ const hasOption=(sel,v)=>[...sel.options].some(o=>o.value===String(v));
+ const st=s.settings||{};
+ if(hasOption($('team'),st.team))$('team').value=st.team;
+ const c=parseFloat(st.contrib);if(c>0&&c<=100)$('contrib').value=st.contrib;else setDefaultContribution();
+ const bc=parseInt(st.batchCount,10);if(bc>=1&&bc<=100000)$('batchCount').value=bc;
+ if(hasOption($('autoDelay'),st.autoDelay))$('autoDelay').value=st.autoDelay;
+ if(typeof st.sound==='boolean')$('sound').checked=st.sound;
+ if(typeof st.prices==='boolean')$('prices').checked=st.prices;
+ updateRates();
+ if(['single','batch','auto'].includes(st.mode))setMode(st.mode);
+ state.raids=num(s.raids);state.purples=num(s.purples);state.dry=num(s.dry);state.bestDry=num(s.bestDry);state.gp=num(s.gp);
+ const known=obj=>Object.fromEntries(Object.entries(obj||{}).filter(([k,v])=>itemByName(k)&&num(v)>0));
+ state.counts=known(s.counts);state.recentAdded=known(s.recentAdded);
+ state.owned=new Set((s.owned||[]).filter(n=>itemByName(n)));
+ state.lastRaid=(s.lastRaid||[]).map(x=>{
+  const item=itemByName(x&&x.n);
+  return item?Object.assign({item,qty:num(x.q)||1,source:String(x.s||'')},x.p?{pending:true}:{},x.fx?{fiveX:true}:{}):null;
+ }).filter(Boolean);
+ const pend=s.pending&&itemByName(s.pending);
+ if(pend&&uniques.some(u=>u.name===pend.name)){
+  state.pending=pend;
+  state.history.unshift({item:pend,qty:1,raid:state.raids,source:'Unique chest',pending:true});
+ }
+}
+['team','contrib','batchCount','autoDelay','sound','prices'].forEach(id=>{
+ $(id).addEventListener('change',scheduleSave);
+ $(id).addEventListener('input',scheduleSave);
+});
+$('mode').addEventListener('click',scheduleSave);
+$('resetContribBtn').addEventListener('click',scheduleSave);
+$('prices').addEventListener('change',()=>{recomputeSessionGp();render();});
+addEventListener('pagehide',flushSave);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
+
+// Ensure Reset Session also clears localStoragerestoreSavedSession();
+initChestSprites();
+initLivePrices();
+render();
+syncButtons();
+if(state.pending)showUnique(state.pending);
 </script>
 <script>
 (function() {
