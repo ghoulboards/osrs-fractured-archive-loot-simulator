@@ -319,6 +319,27 @@ replaceOnce('exact even-split rate',
   ' if(pct<=0)return Infinity;\n return baseTeamDenom/(pct/100);\n}',
   ' if(pct<=0)return Infinity;\n const equalPct=100/teamSize;\n const share=Math.abs(pct-equalPct)<0.006?equalPct:pct; // 16.67 typed/shown -> exact 16.666…\n return baseTeamDenom/(share/100);\n}');
 
+// 20. GP prices: the design's typed-in prices were badly stale (e.g. Rondache 177M vs ~10M, Obligator 257M vs ~2.3B).
+//     Load a dated local snapshot (data/prices.js, made by tools/fetch-prices.mjs) and override them; the typed
+//     numbers remain only as a fallback if the file is missing. Visitors never call a price API.
+replaceOnce('load price snapshot',
+  '\n<script>\n// Rates and quantities match the OSRS Wiki',
+  '\n<script src="data/prices.js"></script>\n<script>\n// Rates and quantities match the OSRS Wiki');
+replaceOnce('apply price snapshot', 'const allItems=[', `// GP values: dated snapshot from data/prices.js (tools/fetch-prices.mjs) overrides the fallback prices typed above.
+// (typeof guards keep this block harmless when tools/*.mjs evaluate the item tables outside a browser)
+const PRICE_SNAPSHOT=(typeof window!=='undefined'&&window.PRICE_SNAPSHOT&&window.PRICE_SNAPSHOT.prices)?window.PRICE_SNAPSHOT:null;
+if(PRICE_SNAPSHOT){for(const it of [...uniques,...standard]){const p=PRICE_SNAPSHOT.prices[it.name];if(typeof p==='number'&&isFinite(p)&&p>=0)it.price=p;}}
+if(typeof document!=='undefined'){const pd=document.getElementById('priceDate');if(pd)pd.textContent=PRICE_SNAPSHOT?PRICE_SNAPSHOT.updated:'an older built-in estimate';}
+const allItems=[`);
+replaceOnce('price note in options',
+  '<small>GP totals use an estimated OSRS GE price snapshot for uniques and standard drops.</small>',
+  '<small>GP totals use OSRS Wiki Grand Exchange prices (24h average) as of <span id="priceDate">…</span>. Untradeable items count as 0.</small>');
+// GP total = current loot x current prices, so it always matches the loot list and a saved session picks up a
+// refreshed snapshot (the old running total baked in whatever prices were current at roll time).
+replaceOnce('gp total from counts',
+  'const visibleGp=state.gp;',
+  'const visibleGp=Object.entries(state.counts).reduce((s,[n,c])=>{const it=allItems.find(x=>x.name===n);return s+((it&&it.price)||0)*c;},0);');
+
 // Sanity: nothing left that talks to the Wiki API at runtime.
 for (const needle of ['api.php', 'resolveItemSprite', 'hydrateLootSprites', 'wikiFileCache', 'spriteStatus', 'fetch(']) {
   if (html.includes(needle)) throw new Error(`leftover reference: ${needle}`);

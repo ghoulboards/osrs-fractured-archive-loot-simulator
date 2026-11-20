@@ -42,13 +42,14 @@ New designs arrive as standalone HTML files that still load sprites from the Wik
 cp ~/Downloads/fractured-archive-loot-simulator-vNN.html index.html
 node tools/apply-site-patches.mjs index.html   # local sprites, modal/beam fixes, mobile layout, bug fixes
 node tools/fetch-sprites.mjs index.html .      # only if the new design adds items; skips sprites already cached
+node tools/fetch-prices.mjs                    # refresh GP prices (also worth running every so often on its own)
 ```
 
 Each patch must match its spot in the file exactly once. If a new design changes one of those spots, the script stops and names the patch that needs updating, so nothing is skipped without you knowing.
 
 ## Data sources
 
-Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The last check against the wiki was revision 15405292 (November 2026). Solo and duo both have a 1/17 team rate, so in a duo your personal rate is 1/34 at an even contribution split. GP values come from an estimated Grand Exchange price snapshot for uniques and standard drops.
+Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The last check against the wiki was revision 15405292 (November 2026). Solo and duo both have a 1/17 team rate, so in a duo your personal rate is 1/34 at an even contribution split. GP values come from a dated snapshot of Grand Exchange prices in `data/prices.js`. They're taken from the [OSRS Wiki real-time prices API](https://prices.runescape.wiki) as the midpoint of the 24-hour average high and low. Items the GE doesn't list, such as Desiccated page, count as 0. Visitors never call the price API. To refresh the snapshot, run `node tools/fetch-prices.mjs` (three requests) and push.
 
 ## Disclaimer
 

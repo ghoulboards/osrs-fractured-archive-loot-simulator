@@ -1250,7 +1250,7 @@ button { cursor: pointer; color: inherit; }
   <div class="field" id="batchField" style="display:none"><label for="batchCount">Number of raids</label><input id="batchCount" type="number" min="1" max="100000" value="100"></div>
   <div class="field" id="autoField" style="display:none"><label for="autoDelay">Delay between raids</label><select id="autoDelay" class="select"><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
   <div class="field"><label>Simulation controls</label><div class="actions"><button class="primary" id="rollBtn">ROLL CHEST</button><button class="secondary" id="pauseBtn" disabled>PAUSE</button><button class="secondary" id="resumeBtn" disabled>RESUME</button></div><div class="auto-status" id="runStatus"></div></div>
-  <div class="field"><label>Options</label><label class="checkline"><input type="checkbox" id="sound" checked> Sound effects</label><label class="checkline" style="margin-top:9px"><input type="checkbox" id="prices" checked> Include GP estimates</label><small>GP totals use an estimated OSRS GE price snapshot for uniques and standard drops.</small></div>
+  <div class="field"><label>Options</label><label class="checkline"><input type="checkbox" id="sound" checked> Sound effects</label><label class="checkline" style="margin-top:9px"><input type="checkbox" id="prices" checked> Include GP estimates</label><small>GP totals use OSRS Wiki Grand Exchange prices (24h average) as of <span id="priceDate">…</span>. Untradeable items count as 0.</small></div>
   <div class="actions"><button class="secondary" id="exportBtn">EXPORT CSV</button><button class="danger" id="resetBtn">RESET SESSION</button></div>
 </aside>
 
@@ -1350,6 +1350,7 @@ button { cursor: pointer; color: inherit; }
   </div>
 </div>
 
+<script src="data/prices.js"></script>
 <script>
 // Rates and quantities match the OSRS Wiki chest page (rev 15405292, Nov 2026): solo and duo both have a 1/17 team rate,
 // so a duo player's personal rate is 1/34 at an even contribution split. Personal rate = team rate / contribution share.
@@ -1380,6 +1381,11 @@ const tertiaries=[
  {name:'Fragment of burning fire',kind:'fragment',denom:56,price:0,icon:'BF'},
  {name:'Orion (pet)',kind:'tertiary',denom:750,price:0,icon:'OR',file:'Orion.png'}
 ];
+// GP values: dated snapshot from data/prices.js (tools/fetch-prices.mjs) overrides the fallback prices typed above.
+// (typeof guards keep this block harmless when tools/*.mjs evaluate the item tables outside a browser)
+const PRICE_SNAPSHOT=(typeof window!=='undefined'&&window.PRICE_SNAPSHOT&&window.PRICE_SNAPSHOT.prices)?window.PRICE_SNAPSHOT:null;
+if(PRICE_SNAPSHOT){for(const it of [...uniques,...standard]){const p=PRICE_SNAPSHOT.prices[it.name];if(typeof p==='number'&&isFinite(p)&&p>=0)it.price=p;}}
+if(typeof document!=='undefined'){const pd=document.getElementById('priceDate');if(pd)pd.textContent=PRICE_SNAPSHOT?PRICE_SNAPSHOT.updated:'an older built-in estimate';}
 const allItems=[...uniques.map(x=>({...x,kind:'unique'})),...tertiaries,...standard];
 const state={raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,mode:'single',running:false,paused:false,batchRemaining:0,timer:null,rollTimer:null};
 const $=id=>document.getElementById(id);const fmt=n=>Math.round(n).toLocaleString('en-US');const gp=n=>{if(n>=1e9)return (n/1e9).toFixed(2)+'B';if(n>=1e6)return (n/1e6).toFixed(2)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return fmt(n)};const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;const chance=d=>Math.random()<1/d;
@@ -1483,7 +1489,7 @@ $('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated rai
 function render(){scheduleSave();const d=getPersonalDenom();
 const pendingName=state.pending?state.pending.name:null;
 const displayCounts=Object.assign({},state.counts);
-$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;const hUrl=spriteUrl(uniqueDropEntry.item);if(hUrl){if(hImg.getAttribute('src')!==hUrl){hImg.onerror=()=>{hImg.style.display='none';};hImg.src=hUrl;}hImg.style.display='block';}else{hImg.style.display='none';}}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
+$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=Object.entries(state.counts).reduce((s,[n,c])=>{const it=allItems.find(x=>x.name===n);return s+((it&&it.price)||0)*c;},0);$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;const hUrl=spriteUrl(uniqueDropEntry.item);if(hUrl){if(hImg.getAttribute('src')!==hUrl){hImg.onerror=()=>{hImg.style.display='none';};hImg.src=hUrl;}hImg.style.display='block';}else{hImg.style.display='none';}}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
  const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>{
  const hiddenUnique=!!x.pending;
  const displayName=hiddenUnique?'Mystery unique':x.item.name;
