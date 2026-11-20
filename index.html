@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta charset="utf-8"><meta name="viewport" content="width=1280, maximum-scale=5.0, user-scalable=yes">
 <title>The Fractured Archive — Personal Loot Simulator</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Roboto+Mono:wght@400;500;600;700&display=swap');
@@ -1268,28 +1268,6 @@ button { cursor: pointer; color: inherit; }
 }
 @media(max-width: 620px) {
   html, body { touch-action: manipulation; }
-  .wrap { padding: 20px 14px 42px; }
-  .topright { display: none; }
-  .hero { grid-template-columns: 1fr; min-height: 0; }
-  .hero-copy { padding: 20px; }
-  .chest-stage { min-height: 200px; }
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  .contentgrid { grid-template-columns: 1fr; }
-  .collection { grid-template-columns: 1fr 1fr; }
-  .settings { padding: 15px; }
-  .loot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .last-drop { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 6px; padding: 7px; }
-  .last-drop .looticon { width: 32px; height: 32px; }
-  .last-drop .lootname { font-size: 9px; line-height: 1.25; word-break: break-word; }
-  .last-drop .lootmeta { font-size: 8px; line-height: 1.25; }
-  .last-drop .tag { font-size: 8px; padding: 3px 5px; }
-  .right-col .log { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; align-content: start; }
-  .logrow { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 6px; padding: 7px; border-bottom: 0; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 7px; background: rgba(16, 20, 16, 0.72); }
-  .logrow.purple-drop { margin-bottom: 0; }
-  .logrow .looticon { width: 30px; height: 30px; }
-  .logrow .lootname { font-size: 9px; line-height: 1.25; word-break: break-word; }
-  .logrow .lootmeta { font-size: 8px; line-height: 1.25; }
-  .logrow .tag { font-size: 8px; padding: 3px 5px; }
   #rollBtn { min-height: 54px; padding: 16px 18px; font-size: 13px; letter-spacing: 1px; }
 }
 </style>
@@ -2397,7 +2375,7 @@ if(state.pending)showUnique(state.pending);
     document.body.style.height = 'auto';
 
     const vw = document.documentElement.clientWidth;
-    if (vw <= 900) {
+    if (vw <= 620 && window.innerWidth <= 620) {
       wrap.style.zoom = '1';
       return;
     }
