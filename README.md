@@ -17,11 +17,17 @@ A browser-based loot simulator for **The Fractured Archive** raid in Old School 
 - **Standard loot table:** three rolls per non-purple raid, with a 1/51 chance of ×5 quantity on each roll.
 - **Tertiary drops:** elite clues, the Archivist's folio, elemental fragments, and the Orion pet.
 - **Session stats:** dry streak, purple rate, GP estimate for uniques, a collection log, and CSV export.
-- **Real item sprites,** loaded live from the [OSRS Wiki](https://oldschool.runescape.wiki/) API. Text icons are shown if the Wiki can't be reached.
+- **Real item and chest sprites,** stored in this repo. The page makes no calls to the OSRS Wiki at runtime.
 
 ## Running locally
 
 There is no build step and nothing to install. Open `index.html` in any modern browser.
+
+## Sprites
+
+All item and chest images live in `images/` and were downloaded once from the [OSRS Wiki](https://oldschool.runescape.wiki/). Item sprites are found by item name: the name is lowercased, apostrophes are removed, and other symbols become hyphens. For example, `Zorya's tome (uncharged)` → `images/items/zoryas-tome-uncharged.png`.
+
+To add a new item, drop its inventory sprite into `images/items/` under that name. If a sprite file is missing, the page shows a two-letter text icon instead.
 
 ## Data sources
 
@@ -29,4 +35,4 @@ Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Arc
 
 ## Disclaimer
 
-This is an independent fan-made project. It is not affiliated with or endorsed by Jagex Ltd. Old School RuneScape and all related names and assets are trademarks of Jagex Ltd. Item and chest sprites are loaded from the OSRS Wiki.
+This is an independent fan-made project. It is not affiliated with or endorsed by Jagex Ltd. Old School RuneScape and all related names and assets are trademarks of Jagex Ltd. Item and chest sprites are from the OSRS Wiki.

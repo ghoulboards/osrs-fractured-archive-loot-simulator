@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>The Fractured Archive — Personal Loot Simulator</title>
+<link rel="icon" type="image/png" href="images/items/rondache.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Roboto+Mono:wght@400;500;600;700&display=swap');
 
@@ -1076,9 +1077,7 @@ button { cursor: pointer; color: inherit; }
   </div>
   <div class="topright">
     <span class="pill">PERSONAL LOOT SIMULATOR</span>
-    <span class="pill">LOCAL SESSION</span>
-    <span class="pill" id="spriteStatus">LOADING ITEM SPRITES…</span>
-  </div>
+    <span class="pill">LOCAL SESSION</span>  </div>
 </header>
 
 <div class="layout">
@@ -1179,7 +1178,7 @@ button { cursor: pointer; color: inherit; }
 </main>
 </div>
 
-<div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Session data stays in this browser tab.</div>
+<div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Item &amp; chest sprites from the OSRS Wiki · Session data stays in this browser tab.</div>
 </div>
 
 <div class="modalback" id="modal">
@@ -1319,114 +1318,28 @@ function render(){const d=getPersonalDenom();$('raidsStat').textContent=fmt(stat
  const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>`<div class="last-drop ${x.item.kind==='unique'?'purple-drop':''}"><div class="looticon">${lootIconHTML(x.item)}</div><div><div class="lootname">${esc(x.item.name)}</div><div class="lootmeta">${esc(x.source)}${x.pending?' · Awaiting chest reveal':''}</div></div><div class="tag ${x.item.kind==='unique'?'purple':x.item.kind==='tertiary'||x.item.kind==='fragment'?'tertiary':''}">${x.pending?'PENDING':x.qty>1?'×'+fmt(x.qty):'×1'}</div></div>`).join('')}
  const coll=$('collection');const collectItems=[...uniques,...tertiaries];coll.innerHTML=collectItems.map(x=>`<div class="collect"><div class="looticon">${lootIconHTML(x)}</div><div style="min-width:0"><strong>${esc(x.name)}</strong><small>${x.kind==='unique'?'Unique':x.kind==='fragment'?'Elemental fragment':'Tertiary'}</small></div><div class="count">${state.counts[x.name]||0}</div></div>`).join('');
  const b=$('breakdown');const entries=Object.entries(state.counts).sort((a,b)=>b[1]-a[1]);b.innerHTML=entries.length?entries.slice(0,60).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};return `<div class="logrow"><div class="looticon">${lootIconHTML(item)}</div><div><div class="lootname">${esc(name)}</div><div class="lootmeta">${item.price?'Est. '+gp(item.price*count)+' GP total':'No price estimate'}</div></div><div class="tag">${fmt(count)}</div></div>`}).join(''):'<div class="empty">Your accumulated loot will appear here.</div>';
- hydrateLootSprites();
 }
-// Resolve real inventory sprites through the OSRS Wiki MediaWiki API.
-const WIKI_API='https://oldschool.runescape.wiki/api.php';
-const wikiFileCache=new Map();
-const wikiPageCache=new Map();
-const itemSpriteCache=new Map();
-const spriteRequested=new Set(), spriteLoadedNames=new Set();
-let spriteLoaded=0, spriteExpected=0;
-function itemImageCandidates(item){
- const n=item.name||'',c=[];
- if(item.file)c.push(item.file);
- c.push(n+'.png');
- if(n.includes(' (uncharged)'))c.push(n.replace(' (uncharged)','')+'.png');
- const aliases={
-  'Elite clue scroll':['Clue scroll (elite).png'],
-  'Ascension crossbows':['Ascension crossbow.png','Ascension crossbows.png'],
-  'Horn of Bran':['Horn of Bran.png','Horn of bran.png'],
-  'Orion (pet)':['Orion.png'],
-  "Archivist's folio (inert)":["Archivist's folio (inert).png","Archivist's folio.png"],
-  'Fragment of whispering wind':['Fragment of Whispering Wind.png'],
-  'Fragment of deep water':['Fragment of Deep Water.png'],
-  'Fragment of living earth':['Fragment of Living Earth.png'],
-  'Fragment of burning fire':['Fragment of Burning Fire.png'],
-  "Zorya's tome (uncharged)":["Zorya's tome.png","Zorya's tome (uncharged).png"],
-  'Obligator (uncharged)':['Obligator.png','Obligator (uncharged).png']
- };
- if(aliases[n])c.push(...aliases[n]);
- return [...new Set(c)];
+// Item sprites are cached locally in images/ (sourced once from the OSRS Wiki), so the page makes no Wiki API calls.
+// File names are the item name slugified: "Zorya's tome (uncharged)" -> images/items/zoryas-tome-uncharged.png
+const spriteSlug=n=>n.toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const spriteUrl=item=>item&&item.name?`images/items/${spriteSlug(item.name)}.png`:null;
+function lootIconHTML(item){
+ const url=spriteUrl(item),fallback=`<span class="icon-fallback" style="display:${url?'none':'grid'}">${esc(item.icon||'??')}</span>`;
+ if(!url)return fallback;
+ return `<img src="${esc(url)}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">${fallback}`;
 }
-function fileKey(s){return s.replace(/_/g,' ').toLowerCase();}
-async function resolveWikiFiles(files){
- const missing=files.filter(f=>!wikiFileCache.has(fileKey(f)));
- for(let i=0;i<missing.length;i+=35){
-  const chunk=missing.slice(i,i+35);
-  const params=new URLSearchParams({action:'query',format:'json',prop:'imageinfo',iiprop:'url',iiurlwidth:'96',titles:chunk.map(f=>'File:'+f).join('|'),origin:'*'});
-  try{
-   const response=await fetch(WIKI_API+'?'+params.toString(),{mode:'cors',credentials:'omit'});
-   if(!response.ok)throw new Error('Wiki image API returned '+response.status);
-   const data=await response.json();
-   for(const page of Object.values(data.query?.pages||{})){
-    const key=fileKey((page.title||'').replace(/^File:/i,''));
-    const info=page.imageinfo?.[0];
-    if(info?.thumburl||info?.url)wikiFileCache.set(key,info.thumburl||info.url);
-   }
-  }catch(err){console.warn('OSRS Wiki sprite lookup failed:',err);}
-  chunk.forEach(f=>{const k=fileKey(f);if(!wikiFileCache.has(k))wikiFileCache.set(k,null);});
- }
+function setItemImage(img,item){
+ const fb=$('uniqueFallback'),url=spriteUrl(item);
+ img.onload=()=>{img.style.display='block';fb.style.display='none';};
+ img.onerror=()=>{img.style.display='none';fb.style.display='block';};
+ if(url)img.src=url;else img.onerror();
 }
-async function resolveWikiPageImage(item){
- const titles=[item.name,item.name.replace(' (uncharged)',''),item.name.replace(' (pet)','')];
- if(item.name==='Elite clue scroll')titles.push('Clue scroll (elite)');
- if(item.name==='Ascension crossbows')titles.push('Ascension crossbow');
- for(const title of [...new Set(titles)]){
-  const key=title.toLowerCase();if(wikiPageCache.has(key)){if(wikiPageCache.get(key))return wikiPageCache.get(key);continue;}
-  const params=new URLSearchParams({action:'query',format:'json',prop:'pageimages',piprop:'thumbnail',pithumbsize:'96',titles:title,origin:'*'});
-  try{
-   const response=await fetch(WIKI_API+'?'+params.toString(),{mode:'cors',credentials:'omit'});
-   if(!response.ok)throw new Error('Wiki page image lookup returned '+response.status);
-   const data=await response.json();
-   const page=Object.values(data.query?.pages||{})[0];
-   const url=page?.thumbnail?.source||null;wikiPageCache.set(key,url);
-   if(url)return url;
-  }catch(err){console.warn('OSRS Wiki page image lookup failed:',err);wikiPageCache.set(key,null);}
- }
- return null;
-}
-async function resolveItemSprite(item){
- if(itemSpriteCache.has(item.name))return itemSpriteCache.get(item.name);
- const promise=(async()=>{const files=itemImageCandidates(item);await resolveWikiFiles(files);for(const f of files){const u=wikiFileCache.get(fileKey(f));if(u)return u;}return await resolveWikiPageImage(item);})();
- itemSpriteCache.set(item.name,promise);return promise;
-}
-function updateSpriteStatus(){const el=$('spriteStatus');if(el)el.textContent=spriteExpected?`ITEM SPRITES · ${spriteLoaded}/${spriteExpected} LOADED`:'ITEM SPRITES · CONNECTING';}
-function hydrateLootSprites(root=document){
- root.querySelectorAll('img[data-loot-sprite]').forEach(img=>{
-  if(img.dataset.loading==='1'||img.dataset.loaded==='1')return;
-  img.dataset.loading='1';const item=allItems.find(x=>x.name===img.dataset.lootSprite);
-  if(!item){img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
-  if(!spriteRequested.has(item.name)){spriteRequested.add(item.name);spriteExpected=spriteRequested.size;}updateSpriteStatus();
-  resolveItemSprite(item).then(url=>{
-   if(!img.isConnected)return;
-   if(!url){img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
-   img.onload=()=>{img.dataset.loaded='1';img.dataset.loading='';if(!spriteLoadedNames.has(item.name)){spriteLoadedNames.add(item.name);spriteLoaded=spriteLoadedNames.size;}updateSpriteStatus();};
-   img.onerror=()=>{img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';};
-   img.src=url;
-  });
- });
-}
-function lootIconHTML(item){return `<img data-loot-sprite="${esc(item.name||'')}" alt="${esc(item.name||'Loot item')}" loading="lazy"><span class="icon-fallback" style="display:none">${esc(item.icon||'??')}</span>`;}
-async function setItemImage(img,item){
- const url=await resolveItemSprite(item);
- if(url){img.onload=()=>{img.style.display='block';$('uniqueFallback').style.display='none';};img.onerror=()=>{img.style.display='none';$('uniqueFallback').style.display='block';};img.src=url;}
- else{img.style.display='none';$('uniqueFallback').style.display='block';}
-}
-async function initChestSprites(){
- const files=[
-  'Chest (The Fractured Archive, unique, closed).png',
-  'Chest (The Fractured Archive, unique, opened).png',
-  'Chest (The Fractured Archive, standard, mine).png',
-  'Chest (The Fractured Archive, standard, mine).webp'
- ];
- await resolveWikiFiles(files);
- const closedUrl=wikiFileCache.get(fileKey(files[0]));
- const openUrl=wikiFileCache.get(fileKey(files[1]));
- const stdUrl=wikiFileCache.get(fileKey(files[2]))||wikiFileCache.get(fileKey(files[3]))||'https://oldschool.runescape.wiki/images/Chest_%28The_Fractured_Archive%2C_standard%2C_mine%29.webp?7ebc3';
+function initChestSprites(){
+ const closedUrl='images/chests/closed.png';
+ const openUrl='images/chests/open.png';
+ const stdUrl='images/chests/standard.webp';
 
  document.querySelectorAll('.chest').forEach(chest=>{
-  if(!closedUrl||!openUrl)return;
   const a=document.createElement('img'),b=document.createElement('img');
   a.className='chest-sprite chest-closed';a.alt='Closed Fractured Archive unique chest';a.draggable=false;
   b.className='chest-sprite chest-open';b.alt='Opened Fractured Archive unique chest';b.draggable=false;
@@ -1444,7 +1357,6 @@ async function initChestSprites(){
   imgs.forEach((img,i)=>{
    img.onload=()=>{loaded++;if(loaded===imgs.length&&!failed)chest.classList.add('has-sprite');};
    img.onerror=()=>{
-    if(img.classList.contains('chest-standard')&&img.src!==stdUrl){img.src=stdUrl;return;}
     failed=true;chest.classList.remove('has-sprite');imgs.forEach(x=>x.remove());
    };
    img.src=urls[i];
