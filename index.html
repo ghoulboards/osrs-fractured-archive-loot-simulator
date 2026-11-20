@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"><meta name="viewport" content="width=1280, maximum-scale=5.0, user-scalable=yes">
 <title>The Fractured Archive — Personal Loot Simulator</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Roboto+Mono:wght@400;500;600;700&display=swap');
@@ -27,11 +27,6 @@
 }
 
 * { box-sizing: border-box; }
-
-html, body {
-  touch-action: manipulation;
-  -webkit-text-size-adjust: 100%;
-}
 
 body {
   margin: 0;
@@ -74,7 +69,7 @@ body::before {
 }
 
 button, input, select { font: inherit; }
-button { cursor: pointer; color: inherit; touch-action: manipulation; }
+button { cursor: pointer; color: inherit; }
 
 .wrap {
   position: relative;
@@ -576,7 +571,7 @@ button { cursor: pointer; color: inherit; touch-action: manipulation; }
 .right-col .log {
   max-height: 760px;
   min-height: 220px;
- touch-action: pan-y; }
+}
 
 .contentgrid {
   display: grid;
@@ -2409,6 +2404,42 @@ if(state.pending)showUnique(state.pending);
   // Run immediately after fonts/layout settle
   requestAnimationFrame(fitToViewport);
   setTimeout(fitToViewport, 250);
+})();
+</script>
+<script>
+(function() {
+  if (window.matchMedia && !window.matchMedia('(max-width: 620px)').matches) return;
+  let lastTapTime = 0;
+  let multiTouchActive = false;
+
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches && e.touches.length > 1) {
+      multiTouchActive = true;
+    } else if (!e.touches || e.touches.length === 1) {
+      multiTouchActive = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    if (multiTouchActive || (e.touches && e.touches.length > 0)) {
+      if (!e.touches || e.touches.length === 0) multiTouchActive = false;
+      return;
+    }
+    const now = Date.now();
+    const dt = now - lastTapTime;
+    lastTapTime = now;
+    if (dt > 0 && dt < 320) {
+      // Prevent browser double-tap zoom on rapid spam taps while keeping click/tap events working
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      // Re-dispatch a clean click if a button/chest was tapped so spam clicking still registers
+      const target = e.target && e.target.closest ? e.target.closest('button, .chest, [role="button"]') : null;
+      if (target && !target.disabled) {
+        target.click();
+      }
+    }
+  }, { passive: false });
 })();
 </script>
 </body>
