@@ -49,16 +49,17 @@ body::before {
   background:
     radial-gradient(circle at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.72) 100%),
     repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
-  z-index: 0;
+  z-index: -2;
 }
 
-/* Overgrown Tangled Root Frame around Viewport */
+/* Overgrown Tangled Root Frame around Viewport — strictly behind content */
 .root-frame {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 20;
+  z-index: -1;
   overflow: hidden;
+  opacity: 0.65;
 }
 
 .root-svg {
@@ -74,10 +75,11 @@ button { cursor: pointer; color: inherit; }
 .wrap {
   position: relative;
   z-index: 1;
-  width: 1380px;
-  max-width: none;
+  isolation: isolate;
+  width: 100%;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 26px 32px 34px;
+  padding: 22px 34px 32px;
   transform-origin: top center;
 }
 
@@ -173,8 +175,9 @@ button { cursor: pointer; color: inherit; }
 
 .layout {
   display: grid;
-  grid-template-columns: 310px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 300px minmax(0, 1fr) 360px;
+  gap: 22px;
+  align-items: start;
 }
 
 /* Carved Stone & Root-Bound Panels */
@@ -371,9 +374,9 @@ button { cursor: pointer; color: inherit; }
 
 /* Hero Altar Section */
 .hero {
-  min-height: 330px;
+  min-height: 295px;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(260px, .9fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
   overflow: hidden;
   position: relative;
   border-color: var(--bark-mid);
@@ -562,10 +565,20 @@ button { cursor: pointer; color: inherit; }
   margin-top: 4px;
 }
 
+.right-col {
+  min-width: 0;
+}
+
+.right-col .log {
+  max-height: 760px;
+  min-height: 220px;
+}
+
 .contentgrid {
   display: grid;
-  grid-template-columns: 1.05fr .95fr;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
   gap: 20px;
+  align-items: start;
 }
 
 .box {
@@ -638,6 +651,7 @@ button { cursor: pointer; color: inherit; }
 }
 
 .lootname { font-weight: 600; color: #e4ede0; }
+.loot-added { color: var(--lime-glow); font-weight: 700; margin-left: 3px; text-shadow: 0 0 8px rgba(158, 240, 72, 0.35); }
 .lootmeta { font-size: 9px; color: var(--muted); margin-top: 4px; }
 
 .tag {
@@ -727,16 +741,21 @@ button { cursor: pointer; color: inherit; }
 .modalback.show { display: grid; }
 
 .modal {
-  width: min(520px, 100%);
+  width: min(740px, 95vw);
   margin: auto; /* centers in the grid, but pins to top (scrollable) if taller than the viewport */
+  min-height: 520px;
   border: 2px solid var(--bark-light);
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(145deg, #1f261e, #101410);
-  box-shadow: 0 25px 90px #000;
+  box-shadow: 0 28px 100px #000;
   text-align: center;
-  padding: 26px;
+  padding: 36px 38px 34px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal:before {
@@ -749,39 +768,39 @@ button { cursor: pointer; color: inherit; }
 
 .modal h2 {
   position: relative;
-  font: 800 23px 'Cinzel', serif;
+  font: 800 clamp(26px, 3.4vw, 34px) 'Cinzel', serif;
   color: var(--lime-glow);
-  margin: 8px 0;
+  margin: 10px 0;
 }
 .modal p {
   position: relative;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .reveal-item {
   position: relative;
-  margin: 16px auto 20px;
-  width: 120px;
-  height: 120px;
+  margin: 20px auto 24px;
+  width: 176px;
+  height: 176px;
   display: grid;
   place-items: center;
   border: 1px solid var(--moss-green);
-  border-radius: 12px;
+  border-radius: 14px;
   background: radial-gradient(circle, rgba(105, 184, 50, 0.35), #182017);
-  box-shadow: 0 0 35px rgba(158, 240, 72, 0.25);
+  box-shadow: 0 0 45px rgba(158, 240, 72, 0.3);
 }
 
 .reveal-item img {
-  width: 90px;
-  height: 90px;
+  width: 132px;
+  height: 132px;
   object-fit: contain;
   image-rendering: pixelated;
   animation: item-pop .65s cubic-bezier(.2, .8, .2, 1) both;
 }
 
 .reveal-item .fallback {
-  font: 700 34px 'Cinzel', serif;
+  font: 700 44px 'Cinzel', serif;
   color: var(--lime-glow);
 }
 
@@ -819,19 +838,19 @@ button { cursor: pointer; color: inherit; }
 #mode button { position: relative; z-index: 2; pointer-events: auto; }
 .chest { cursor: pointer; image-rendering: pixelated; outline: none; }
 .chest:focus-visible { outline: 2px solid var(--lime-glow); outline-offset: 8px; border-radius: 10px; }
-/* Bottom margin reserves room for the scaled chest + its "CLICK CHEST" label (bottom:-22px) so the label
+/* Bottom margin reserves room for the scaled chest + its "CLICK CHEST" label (bottom:-24px) so the label
    stays inside the modal when closed and above the revealed item when open. */
-#modalChest { margin: 8px auto 56px; transform: scale(1.12); transform-origin: center; cursor: pointer; }
-#modalChest:hover { transform: scale(1.16) translateY(-3px); }
-#modalChest.open:hover { transform: scale(1.12); }
+#modalChest { width: 270px; height: 220px; margin: 16px auto 36px; transform: scale(1.16); transform-origin: center; cursor: pointer; }
+#modalChest:hover { transform: scale(1.2) translateY(-4px); }
+#modalChest.open:hover { transform: scale(1.16); }
 #modalChest:after {
   content: 'CLICK CHEST';
   position: absolute;
   left: 50%;
-  bottom: -22px;
+  bottom: -24px;
   transform: translateX(-50%);
   white-space: nowrap;
-  font: 700 9px 'Roboto Mono';
+  font: 700 10px 'Roboto Mono';
   letter-spacing: 2px;
   color: var(--lime-glow);
   text-shadow: 0 2px 5px #000;
@@ -841,9 +860,9 @@ button { cursor: pointer; color: inherit; }
 .modal-instruction {
   position: relative;
   color: #c2f58c !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   letter-spacing: .5px;
-  margin: 5px 0 8px !important;
+  margin: 6px 0 10px !important;
 }
 
 .modalback.show .modal { animation: modalIn .28s ease-out; }
@@ -910,14 +929,44 @@ button { cursor: pointer; color: inherit; }
 #heroChest.has-sprite:not(.unique-mode):not(.awaiting) .chest-closed,
 #heroChest.has-sprite:not(.unique-mode):not(.awaiting) .chest-open { display: none; }
 
-/* Unique chest shown in modal, while awaiting reveal, or when last raid reward was a unique */
-#modalChest.has-sprite:not(.open) .chest-closed,
-#heroChest.has-sprite.unique-mode:not(.open) .chest-closed,
-#heroChest.has-sprite.awaiting:not(.open) .chest-closed { display: block; }
+/* Unique chest shown in modal */
+#modalChest.has-sprite:not(.open) .chest-closed { display: block; }
+#modalChest.has-sprite.open .chest-open { display: block; filter: drop-shadow(0 0 20px #bd8bea); }
 
-#modalChest.has-sprite.open .chest-open,
-#heroChest.has-sprite.unique-mode.open .chest-open,
-#heroChest.has-sprite.awaiting.open .chest-open { display: block; filter: drop-shadow(0 0 20px #bd8bea); }
+/* On the hero chest, when a unique is received/claimed, show the OPENED chest + centered reward icon */
+#heroChest.has-sprite.unique-mode .chest-closed,
+#heroChest.has-sprite.unique-mode .chest-standard { display: none; }
+#heroChest.has-sprite.unique-mode .chest-open {
+  display: block;
+  transform: translateY(10px) scale(0.92);
+  filter: drop-shadow(0 0 22px rgba(189, 139, 234, 0.72));
+}
+#heroChest:not(.has-sprite).unique-mode .lid { transform: rotate(-28deg) translateY(-27px); }
+
+.hero-loot-preview {
+  position: absolute;
+  top: 54%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 7;
+  display: none;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(189, 139, 234, 0.36), rgba(24, 15, 34, 0.88) 75%);
+  border: 1px solid rgba(223, 191, 255, 0.75);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), 0 0 18px rgba(189, 139, 234, 0.6);
+  pointer-events: none;
+}
+#heroChest.unique-mode .hero-loot-preview { display: grid; }
+.hero-loot-preview img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  animation: item-pop .45s cubic-bezier(.2, .8, .2, 1) both;
+}
 .chest.awaiting { animation: purple-pulse 1.45s ease-in-out infinite; z-index: 1; }
 .chest.awaiting:before {
   content: '';
@@ -975,6 +1024,15 @@ button { cursor: pointer; color: inherit; }
   100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
 }
 
+@media(min-width: 1650px) {
+  .layout { grid-template-columns: 310px minmax(0, 1fr) 410px; }
+  .collection { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media(max-width: 1180px) {
+  .layout { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+  .right-col { grid-column: 1 / -1; }
+  .right-col .log { max-height: 420px; min-height: 0; }
+}
 @media(max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
   .settings { order: 2; }
@@ -1087,7 +1145,8 @@ button { cursor: pointer; color: inherit; }
   </div>
   <div class="topright">
     <span class="pill">PERSONAL LOOT SIMULATOR</span>
-    <span class="pill">LOCAL SESSION</span>  </div>
+    <span class="pill">LOCAL SESSION</span>
+  </div>
 </header>
 
 <div class="layout">
@@ -1125,7 +1184,7 @@ button { cursor: pointer; color: inherit; }
   <div class="field" id="batchField" style="display:none"><label for="batchCount">Number of raids</label><input id="batchCount" type="number" min="1" max="100000" value="100"></div>
   <div class="field" id="autoField" style="display:none"><label for="autoDelay">Delay between raids</label><select id="autoDelay" class="select"><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
   <div class="field"><label>Simulation controls</label><div class="actions"><button class="primary" id="rollBtn">ROLL CHEST</button><button class="secondary" id="pauseBtn" disabled>PAUSE</button><button class="secondary" id="resumeBtn" disabled>RESUME</button></div><div class="auto-status" id="runStatus"></div></div>
-  <div class="field"><label>Options</label><label class="checkline"><input type="checkbox" id="sound" checked> Sound effects</label><label class="checkline" style="margin-top:9px"><input type="checkbox" id="prices" checked> Include GP estimates</label><small>GP totals use a Wiki price snapshot for uniques only; other item prices are not populated yet.</small></div>
+  <div class="field"><label>Options</label><label class="checkline"><input type="checkbox" id="sound" checked> Sound effects</label><label class="checkline" style="margin-top:9px"><input type="checkbox" id="prices" checked> Include GP estimates</label><small>GP totals use an estimated OSRS GE price snapshot for uniques and standard drops.</small></div>
   <div class="actions"><button class="secondary" id="exportBtn">EXPORT CSV</button><button class="danger" id="resetBtn">RESET SESSION</button></div>
 </aside>
 
@@ -1152,6 +1211,9 @@ button { cursor: pointer; color: inherit; }
   </div>
   <div class="chest-stage">
     <div class="chest" id="heroChest">
+      <div class="hero-loot-preview" id="heroUniquePreview">
+        <img id="heroUniqueImg" alt="Unique reward">
+      </div>
       <div class="lid"></div>
       <div class="chest-body"></div>
       <div class="chest-band"></div>
@@ -1165,27 +1227,28 @@ button { cursor: pointer; color: inherit; }
   <div class="panel stat"><div class="k">Raids completed</div><div class="v" id="raidsStat">0</div><div class="sub">Personal completions</div></div>
   <div class="panel stat"><div class="k">Purples claimed</div><div class="v" id="purplesStat">0</div><div class="sub" id="purpleRateStat">0.00% of raids</div></div>
   <div class="panel stat"><div class="k">Unique collection</div><div class="v" id="uniqueStat">0 / 5</div><div class="sub">Tradeable uniques</div></div>
-  <div class="panel stat"><div class="k">Estimated loot value</div><div class="v" id="gpStat">0</div><div class="sub">Wiki unique-price snapshot</div></div>
+  <div class="panel stat"><div class="k">Estimated loot value</div><div class="v" id="gpStat">0</div><div class="sub">Uniques &amp; standard loot</div></div>
   <div class="panel stat"><div class="k">Current dry streak</div><div class="v" id="dryStat">0</div><div class="sub">Since your last purple</div></div>
 </section>
 
 <div class="contentgrid">
-  <div style="display:grid;gap:20px;min-width:0">
-    <section class="panel box">
-      <div class="boxhead"><h3>Last raid</h3><span id="lastRaidLabel">No raids yet</span></div>
-      <div class="loot-grid" id="lastRaid"><div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div></div>
-    </section>
-    <section class="panel box">
-      <div class="boxhead"><h3>Session loot totals</h3><span id="historyCount">0 items</span></div>
-      <div class="log" id="breakdown"><div class="empty">Your accumulated loot will appear here.</div></div>
-    </section>
-  </div>
+  <section class="panel box">
+    <div class="boxhead"><h3>Last raid</h3><span id="lastRaidLabel">No raids yet</span></div>
+    <div class="loot-grid" id="lastRaid"><div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div></div>
+  </section>
   <section class="panel box">
     <div class="boxhead"><h3>Collection log</h3><span>Unique & tertiary rewards</span></div>
     <div class="collection" id="collection"></div>
   </section>
 </div>
 </main>
+
+<aside class="right-col">
+  <section class="panel box">
+    <div class="boxhead"><h3>Session loot totals</h3><span id="historyCount">0 items</span></div>
+    <div class="log" id="breakdown"><div class="empty">Your accumulated loot will appear here.</div></div>
+  </section>
+</aside>
 </div>
 
 <div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Item &amp; chest sprites from the OSRS Wiki · Session data stays in this browser tab.</div>
@@ -1212,8 +1275,8 @@ button { cursor: pointer; color: inherit; }
 
 <script>
 // Rates and quantities are based on the OSRS Wiki chest page (with duo personal rate adjusted to 1/17 -> team rate 1/8.5).
-const teamDenom={1:16,2:17,3:37.5,4:42,5:47.5,6:51,7:56,8:60};
-const teamTeamDenom={1:16,2:8.5,3:12.5,4:10.5,5:9.5,6:8.5,7:8,8:7.5};
+const teamDenom={1:17,2:17,3:37.5,4:42,5:47.5,6:51,7:56,8:60};
+const teamTeamDenom={1:17,2:8.5,3:12.5,4:10.5,5:9.5,6:8.5,7:8,8:7.5};
 const uniques=[
  {name:'Rondache',kind:'unique',weight:5,price:176994247,icon:'RO',file:'Rondache.png'},
  {name:"Zorya's tome (uncharged)",kind:'unique',weight:4,price:157439981,icon:'ZT',file:"Zorya's tome.png"},
@@ -1223,12 +1286,12 @@ const uniques=[
 ];
 // Weighted standard table: each raid that does not award a personal purple receives three independent rolls.
 const standard=[
- ['Battlestaff',11,34,37,0],['Dragon platelegs',11,1,1,0],['Dragon plateskirt',11,1,1,0],['Rune kiteshield',11,5,7,0],
- ['Nature rune',11,301,385,0],['Astral rune',11,301,385,0],['Blood rune',11,301,385,0],['Soul rune',11,301,380,0],['Earth rune',11,3009,3662,0],
- ['Grimy harralander',7,60,66,0],['Grimy ranarr weed',7,18,20,0],['Grimy toadflax',7,24,28,0],['Snapdragon seed',7,3,4,0],['Kwuarm seed',7,7,8,0],['Snape grass seed',7,7,8,0],['Yew seed',7,4,5,0],
- ['Sapphire',11,24,27,0],['Emerald',11,24,26,0],['Ruby',11,23,27,0],['Diamond',11,24,26,0],
- ['Iron ore',6,851,915,0],['Adamantite ore',6,60,72,0],['Runite ore',6,25,26,0],['Ascension shards',55,90,98,0],['Onyx bolt tips',11,50,58,0],['Earth orb',11,68,75,0],
- ['Desiccated page',6,30,36,0],['Aether catalyst',6,180,191,0],['Pure essence',6,1404,1632,0],['Mahogany logs',6,140,152,0],['Dragon arrowtips',6,350,369,0],['Raw shark',6,80,92,0],['Wine of Zamorak',7,32,36,0]
+ ['Battlestaff',11,34,37,7951],['Dragon platelegs',11,1,1,161136],['Dragon plateskirt',11,1,1,161132],['Rune kiteshield',11,5,7,31824],
+ ['Nature rune',11,301,385,166],['Astral rune',11,301,385,137],['Blood rune',11,301,385,340],['Soul rune',11,301,380,297],['Earth rune',11,3009,3662,4],
+ ['Grimy harralander',7,60,66,3587],['Grimy ranarr weed',7,18,20,7640],['Grimy toadflax',7,24,28,1588],['Snapdragon seed',7,3,4,54551],['Kwuarm seed',7,7,8,2150],['Snape grass seed',7,7,8,8300],['Yew seed',7,4,5,14200],
+ ['Sapphire',11,24,27,280],['Emerald',11,24,26,420],['Ruby',11,23,27,664],['Diamond',11,24,26,1560],
+ ['Iron ore',6,851,915,41],['Adamantite ore',6,60,72,523],['Runite ore',6,25,26,11200],['Ascension shards',55,90,98,850],['Onyx bolt tips',11,50,58,7800],['Earth orb',11,68,75,1350],
+ ['Desiccated page',6,30,36,4200],['Aether catalyst',6,180,191,360],['Pure essence',6,1404,1632,1],['Mahogany logs',6,140,152,61],['Dragon arrowtips',6,350,369,2649],['Raw shark',6,80,92,508],['Wine of Zamorak',7,32,36,920]
 ].map(([name,w,min,max,price])=>({name,weight:w,min,max,price,icon:name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}));
 const tertiaries=[
  {name:'Elite clue scroll',kind:'tertiary',denom:10,price:0,icon:'CL',file:'Clue scroll (elite).png'},
@@ -1240,7 +1303,7 @@ const tertiaries=[
  {name:'Orion (pet)',kind:'tertiary',denom:750,price:0,icon:'OR',file:'Orion.png'}
 ];
 const allItems=[...uniques.map(x=>({...x,kind:'unique'})),...tertiaries,...standard];
-const state={raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},history:[],lastRaid:[],owned:new Set(),pending:null,mode:'single',running:false,paused:false,batchRemaining:0,timer:null,rollTimer:null};
+const state={raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,mode:'single',running:false,paused:false,batchRemaining:0,timer:null,rollTimer:null};
 const $=id=>document.getElementById(id);const fmt=n=>Math.round(n).toLocaleString('en-US');const gp=n=>{if(n>=1e9)return (n/1e9).toFixed(2)+'B';if(n>=1e6)return (n/1e6).toFixed(2)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return fmt(n)};const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;const chance=d=>Math.random()<1/d;
 
 function formatDenom(d){
@@ -1306,28 +1369,51 @@ $('resetContribBtn').addEventListener('click',()=>{
 setDefaultContribution();
 updateRates();
 
-function addItem(item,qty=1,source='Standard loot') {state.counts[item.name]=(state.counts[item.name]||0)+qty;state.gp+=item.price*qty;if(item.kind==='unique'||item.kind==='tertiary'||item.kind==='fragment')state.owned.add(item.name);state.history.unshift({item,qty,raid:state.raids,source});state.lastRaid.push({item,qty,source});}
+function noteRollAdded(itemName,qty,inCurrentRollSet){
+ if(!inCurrentRollSet.has(itemName)){
+  state.recentAdded[itemName]=qty;
+  inCurrentRollSet.add(itemName);
+ }else{
+  state.recentAdded[itemName]=(state.recentAdded[itemName]||0)+qty;
+ }
+}
+function finalizeRollAdded(inCurrentRollSet){
+ for(const key of Object.keys(state.recentAdded)){
+  if(!inCurrentRollSet.has(key))delete state.recentAdded[key];
+ }
+}
+function addItem(item,qty=1,source='Standard loot',inCurrentRollSet=null) {state.counts[item.name]=(state.counts[item.name]||0)+qty;state.gp+=item.price*qty;if(inCurrentRollSet)noteRollAdded(item.name,qty,inCurrentRollSet);if(item.kind==='unique'||item.kind==='tertiary'||item.kind==='fragment')state.owned.add(item.name);state.history.unshift({item,qty,raid:state.raids,source});state.lastRaid.push({item,qty,source});}
 function weightedStandard(){let total=standard.reduce((s,x)=>s+x.weight,0),r=Math.random()*total;for(const item of standard){r-=item.weight;if(r<0)return item;}return standard[standard.length-1]}
 function pickUnique(){let r=Math.random()*15;for(const u of uniques){r-=u.weight;if(r<0)return u;}return uniques[0]}
-function runTertiaries(){let drops=[];if(chance(10)){const c=tertiaries[0];addItem(c,1,'Tertiary');drops.push(c)}if(!state.owned.has(tertiaries[1].name)&&chance(15)){const c=tertiaries[1];addItem(c,1,'Tertiary');drops.push(c)}const frags=tertiaries.filter(x=>x.kind==='fragment'&&!state.owned.has(x.name));if(frags.length&&chance(14)){const c=frags[randInt(0,frags.length-1)];addItem(c,1,'Tertiary');drops.push(c)}if(chance(750)){const c=tertiaries[6];addItem(c,1,'Pet');drops.push(c)}return drops}
-function rollRaid(){state.lastRaid=[];state.raids++;state.dry++;let personalPurple=chance(getPersonalDenom());let mainDrop=null;if(personalPurple){mainDrop=pickUnique();state.purples++;state.bestDry=Math.max(state.bestDry,state.dry-1);state.dry=0;state.pending=mainDrop;state.history.unshift({item:mainDrop,qty:1,raid:state.raids,source:'Unique chest',pending:true});state.lastRaid.push({item:mainDrop,qty:1,source:'Unique chest',pending:true});}else{for(let i=0;i<3;i++){const item=weightedStandard();let qty=randInt(item.min,item.max);if(chance(51))qty*=5;addItem(item,qty,'Standard chest');}}
-runTertiaries();playSound(personalPurple?'purple':'roll');render();if(personalPurple){showUnique(mainDrop);stopAuto(true);return true;}return false;}
+function runTertiaries(rolledSet){let drops=[];if(chance(10)){const c=tertiaries[0];addItem(c,1,'Tertiary',rolledSet);drops.push(c)}if(!state.owned.has(tertiaries[1].name)&&chance(15)){const c=tertiaries[1];addItem(c,1,'Tertiary',rolledSet);drops.push(c)}const frags=tertiaries.filter(x=>x.kind==='fragment'&&!state.owned.has(x.name));if(frags.length&&chance(14)){const c=frags[randInt(0,frags.length-1)];addItem(c,1,'Tertiary',rolledSet);drops.push(c)}if(chance(750)){const c=tertiaries[6];addItem(c,1,'Pet',rolledSet);drops.push(c)}return drops}
+function rollRaid(){state.lastRaid=[];state.raids++;state.dry++;const rolledSet=new Set();let personalPurple=chance(getPersonalDenom());let mainDrop=null;if(personalPurple){mainDrop=pickUnique();state.purples++;state.bestDry=Math.max(state.bestDry,state.dry-1);state.dry=0;state.pending=mainDrop;noteRollAdded(mainDrop.name,1,rolledSet);state.history.unshift({item:mainDrop,qty:1,raid:state.raids,source:'Unique chest',pending:true});state.lastRaid.push({item:mainDrop,qty:1,source:'Unique chest',pending:true});}else{for(let i=0;i<3;i++){const item=weightedStandard();let qty=randInt(item.min,item.max);if(chance(51))qty*=5;addItem(item,qty,'Standard chest',rolledSet);}}
+runTertiaries(rolledSet);finalizeRollAdded(rolledSet);playSound(personalPurple?'purple':'roll');render();if(personalPurple){showUnique(mainDrop);stopAuto(true);return true;}return false;}
 function showUnique(item){$('modal').classList.add('show','purple-event');$('modalChest').classList.remove('open');$('revealArea').style.display='none';$('uniqueInstruction').textContent='A purple! Click the chest to reveal your reward.';$('uniqueName').textContent=item.name;$('uniqueRarity').textContent=`Unique weight: ${item.weight}/15 · Personal purple: 1/${formatDenom(getPersonalDenom())} (${getContributionPct()}% contrib)`;setItemImage($('uniqueImage'),item);$('uniqueFallback').textContent=item.icon;$('uniqueFallback').style.display='none';}
 function claimUnique(){const item=state.pending;if(!item)return;if($('revealArea').style.display==='none'){$('modalChest').classList.add('open');$('revealArea').style.display='block';$('uniqueInstruction').textContent='Reward revealed! Click the opened chest to continue.';playSound('open');return;}
- state.counts[item.name]=(state.counts[item.name]||0)+1;state.gp+=item.price||0;state.owned.add(item.name);const h=state.history.find(x=>x.pending&&x.item.name===item.name);if(h)delete h.pending;const recent=state.lastRaid.find(x=>x.pending&&x.item.name===item.name);if(recent)delete recent.pending;state.pending=null;$('modal').classList.remove('show','purple-event');render();if(state.mode==='batch'&&state.batchRemaining>0&&!state.paused&&state.running){continueBatch()}else if(state.mode==='auto'&&state.running&&!state.paused){scheduleAuto();}else{state.running=false;syncButtons();}}
+ state.counts[item.name]=(state.counts[item.name]||0)+1;state.gp+=item.price||0;state.recentAdded={[item.name]:1};state.owned.add(item.name);const h=state.history.find(x=>x.pending&&x.item.name===item.name);if(h)delete h.pending;const recent=state.lastRaid.find(x=>x.pending&&x.item.name===item.name);if(recent)delete recent.pending;state.pending=null;$('modal').classList.remove('show','purple-event');render();if(state.mode==='batch'&&state.batchRemaining>0&&!state.paused&&state.running){continueBatch()}else if(state.mode==='auto'&&state.running&&!state.paused){scheduleAuto();}else{state.running=false;syncButtons();}}
 $('modalChest').addEventListener('click',claimUnique);$('modalChest').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();claimUnique();}});
 function oneRoll(){if(state.pending)return;return rollRaid()}
 function continueBatch(){if(!state.running||state.paused||state.pending)return;if(state.batchRemaining<=0){state.running=false;state.batchRemaining=0;syncButtons();$('runStatus').textContent='Batch complete.';return;}state.batchRemaining--;const purple=rollRaid();if(!purple){if(state.batchRemaining>0){setTimeout(continueBatch,0)}else{state.running=false;syncButtons();$('runStatus').textContent='Batch complete.'}}else{$('runStatus').textContent=`Purple! ${state.batchRemaining} batch raids waiting.`;}}
 function scheduleAuto(){if(!state.running||state.paused||state.pending)return;const ms=+$('autoDelay').value*1000;$('runStatus').textContent=`Auto rolling · next raid in ${$('autoDelay').value}s`;$('progressBar').style.width='0%';let start=Date.now();clearInterval(state.timer);state.timer=setInterval(()=>{let pct=Math.min(100,(Date.now()-start)/ms*100);$('progressBar').style.width=pct+'%';if(pct>=100){clearInterval(state.timer);if(state.running&&!state.paused&&!state.pending){const purple=rollRaid();if(!purple)scheduleAuto();}}},50)}
-function stopAuto(interrupt=false){clearInterval(state.timer);if(interrupt){$('runStatus').textContent='Paused for unique chest · open it to continue.';} }
+function stopAuto(interrupt=false){clearInterval(state.timer);if(interrupt&&state.running){$('runStatus').textContent='Paused for unique chest · open it to continue.';} }
 function syncButtons(){$('pauseBtn').disabled=!state.running||state.paused;$('resumeBtn').disabled=!state.running||!state.paused;$('rollBtn').disabled=state.running||!!state.pending;}
 $('rollBtn').addEventListener('click',()=>{if(state.pending)return;if(state.mode==='single'){oneRoll();return;}state.running=true;state.paused=false;syncButtons();if(state.mode==='batch'){state.batchRemaining=Math.max(1,Math.min(100000,parseInt($('batchCount').value)||1));$('runStatus').textContent=`Batch running · ${state.batchRemaining} raids queued` ;continueBatch();}else{scheduleAuto();}});
 $('pauseBtn').addEventListener('click',()=>{state.paused=true;clearInterval(state.timer);state.running=true;$('runStatus').textContent='Simulation paused.';syncButtons()});$('resumeBtn').addEventListener('click',()=>{state.paused=false;state.running=true;syncButtons();if(state.mode==='batch')continueBatch();else if(state.mode==='auto')scheduleAuto()});
-$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});$('modal').classList.remove('show','purple-event');$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
-function render(){const d=getPersonalDenom();$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>state.counts[x.name]).length+' / 5';$('gpStat').textContent=$('prices').checked?gp(state.gp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(state.counts).reduce((a,b)=>a+b,0))+' items';const lastHasUnique=!!state.pending||state.lastRaid.some(x=>x.item&&x.item.kind==='unique');$('heroChest').classList.toggle('awaiting',!!state.pending);$('heroChest').classList.toggle('unique-mode',lastHasUnique);$('stageLabel').textContent=state.pending?'Unique chest appeared':lastHasUnique?'Unique reward claimed!':'Awaiting your reward';
- const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>`<div class="last-drop ${x.item.kind==='unique'?'purple-drop':''}"><div class="looticon">${lootIconHTML(x.item)}</div><div><div class="lootname">${esc(x.item.name)}</div><div class="lootmeta">${esc(x.source)}${x.pending?' · Awaiting chest reveal':''}</div></div><div class="tag ${x.item.kind==='unique'?'purple':x.item.kind==='tertiary'||x.item.kind==='fragment'?'tertiary':''}">${x.pending?'PENDING':x.qty>1?'×'+fmt(x.qty):'×1'}</div></div>`).join('')}
- const coll=$('collection');const collectItems=[...uniques,...tertiaries];coll.innerHTML=collectItems.map(x=>`<div class="collect"><div class="looticon">${lootIconHTML(x)}</div><div style="min-width:0"><strong>${esc(x.name)}</strong><small>${x.kind==='unique'?'Unique':x.kind==='fragment'?'Elemental fragment':'Tertiary'}</small></div><div class="count">${state.counts[x.name]||0}</div></div>`).join('');
- const b=$('breakdown');const entries=Object.entries(state.counts).sort((a,b)=>b[1]-a[1]);b.innerHTML=entries.length?entries.slice(0,60).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};return `<div class="logrow"><div class="looticon">${lootIconHTML(item)}</div><div><div class="lootname">${esc(name)}</div><div class="lootmeta">${item.price?'Est. '+gp(item.price*count)+' GP total':'No price estimate'}</div></div><div class="tag">${fmt(count)}</div></div>`}).join(''):'<div class="empty">Your accumulated loot will appear here.</div>';
+$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});$('modal').classList.remove('show','purple-event');$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
+function render(){const d=getPersonalDenom();
+const pendingName=state.pending?state.pending.name:null;
+const displayCounts=Object.assign({},state.counts);
+if(pendingName){displayCounts[pendingName]=Math.max(0,(displayCounts[pendingName]||0)-1);if(displayCounts[pendingName]===0)delete displayCounts[pendingName];}
+$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp-(state.pending?(state.pending.price||0):0);$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;const hUrl=spriteUrl(uniqueDropEntry.item);if(hUrl){if(hImg.getAttribute('src')!==hUrl){hImg.onerror=()=>{hImg.style.display='none';};hImg.src=hUrl;}hImg.style.display='block';}else{hImg.style.display='none';}}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
+ const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>{
+ const hiddenUnique=!!x.pending;
+ const displayName=hiddenUnique?'Mystery unique':x.item.name;
+ const iconHtml=hiddenUnique?'<span class="icon-fallback" style="display:grid;color:#dfbfff">?</span>':lootIconHTML(x.item);
+ return `<div class="last-drop ${x.item.kind==='unique'?'purple-drop':''}"><div class="looticon">${iconHtml}</div><div><div class="lootname">${esc(displayName)}</div><div class="lootmeta">${esc(x.source)}${hiddenUnique?' · Open the unique chest to reveal':''}</div></div><div class="tag ${x.item.kind==='unique'?'purple':x.item.kind==='tertiary'||x.item.kind==='fragment'?'tertiary':''}">${hiddenUnique?'HIDDEN':x.qty>1?'×'+fmt(x.qty):'×1'}</div></div>`;
+}).join('')}
+ const coll=$('collection');const collectItems=[...uniques,...tertiaries];coll.innerHTML=collectItems.map(x=>`<div class="collect"><div class="looticon">${lootIconHTML(x)}</div><div style="min-width:0"><strong>${esc(x.name)}</strong><small>${x.kind==='unique'?'Unique':x.kind==='fragment'?'Elemental fragment':'Tertiary'}</small></div><div class="count">${displayCounts[x.name]||0}</div></div>`).join('');
+ const showPrices=$('prices').checked;const b=$('breakdown');
+const entries=Object.entries(displayCounts).sort((a,b)=>{const itemA=allItems.find(x=>x.name===a[0])||{};const itemB=allItems.find(x=>x.name===b[0])||{};const valA=(itemA.price||0)*a[1];const valB=(itemB.price||0)*b[1];return valB-valA||b[1]-a[1];});b.innerHTML=entries.length?entries.slice(0,80).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};const estTotal=(item.price||0)*count;const added=state.recentAdded[name]||0;const addedBadge=added>0?` <span class="loot-added">+${fmt(added)}</span>`:'';const metaText=!showPrices?'GP estimates hidden':estTotal>0?'Est. '+gp(estTotal)+' GP total':'Untradeable / 0 GP';return `<div class="logrow"><div class="looticon">${lootIconHTML(item)}</div><div><div class="lootname">${esc(name)} (${fmt(count)})${addedBadge}</div><div class="lootmeta">${metaText}</div></div><div class="tag">${fmt(count)}</div></div>`}).join(''):'<div class="empty">Your accumulated loot will appear here.</div>';
 }
 // Item sprites are cached locally in images/ (sourced once from the OSRS Wiki), so the page makes no Wiki API calls.
 // File names are the item name slugified: "Zorya's tome (uncharged)" -> images/items/zoryas-tome-uncharged.png
@@ -1376,11 +1462,119 @@ function initChestSprites(){
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function exportCSV(){const rows=[['Item','Quantity','Category','Estimated GP each','Estimated GP total'],...Object.entries(state.counts).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};return [name,count,item.kind||'standard',item.price||0,(item.price||0)*count]})];const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='fractured-archive-loot.csv';a.click();URL.revokeObjectURL(a.href)}$('exportBtn').addEventListener('click',exportCSV);
-let audioCtx;function playSound(type){if(!$('sound').checked)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const now=audioCtx.currentTime;
- const notes=type==='purple'?[261.6,392,523.3,659.3,784,1046.5]:type==='open'?[392,523.3,659.3,784]:[220,277.2];
- notes.forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type==='purple'?'square':'triangle';o.frequency.setValueAtTime(f,now+i*(type==='purple'?.105:.09));o.connect(g);g.connect(audioCtx.destination);const t=now+i*(type==='purple'?.105:.09);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(type==='purple'?.045:.035,t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+(type==='purple'?.24:.19));o.start(t);o.stop(t+(type==='purple'?.25:.2));});
- if(type==='purple'){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(110,now);o.frequency.exponentialRampToValueAtTime(48,now+.48);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.11,now+.025);g.gain.exponentialRampToValueAtTime(.0001,now+.5);o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+.51);}
- }catch(e){}}
+let audioCtx;
+function playSound(type) {
+  if (!$('sound').checked) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+
+    // Gentle stereo-panned warm synth voice with soft attack & tail
+    const synthVoice = (freq, start, dur, vol = 0.055, wave = 'sine', cutoffStart = 2400, cutoffEnd = 900, pan = 0, glideTo = null) => {
+      const osc = audioCtx.createOscillator();
+      const filter = audioCtx.createBiquadFilter();
+      const gain = audioCtx.createGain();
+      const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, start);
+      if (glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo, start + dur);
+
+      filter.type = 'lowpass';
+      filter.Q.setValueAtTime(1.2, start);
+      filter.frequency.setValueAtTime(cutoffStart, start);
+      filter.frequency.exponentialRampToValueAtTime(Math.max(120, cutoffEnd), start + dur);
+
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.linearRampToValueAtTime(vol, start + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      if (panner) {
+        panner.pan.setValueAtTime(pan, start);
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+
+      osc.start(start);
+      osc.stop(start + dur + 0.03);
+    };
+
+    // Soft filtered noise burst for airy whoosh / stone settle
+    const noiseBurst = (start, dur, vol = 0.025, centerFreq = 1200, q = 1.8, pan = 0) => {
+      const bufferSize = Math.max(1, Math.floor(audioCtx.sampleRate * dur));
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+      const src = audioCtx.createBufferSource();
+      src.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(centerFreq, start);
+      filter.Q.setValueAtTime(q, start);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.linearRampToValueAtTime(vol, start + dur * 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+      const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+      src.connect(filter);
+      filter.connect(gain);
+      if (panner) {
+        panner.pan.setValueAtTime(pan, start);
+        gain.connect(panner);
+        panner.connect(audioCtx.destination);
+      } else {
+        gain.connect(audioCtx.destination);
+      }
+
+      src.start(start);
+      src.stop(start + dur + 0.02);
+    };
+
+    if (type === 'purple') {
+      // Modern lush arpeggio + warm sub pulse + shimmering major-9th resolve (smooth, zero harshness)
+      synthVoice(65.41, now, 0.75, 0.085, 'sine', 320, 140, 0, 55.0); // Deep C2 sub bloom
+      noiseBurst(now, 0.22, 0.022, 950, 1.1, 0);
+
+      const notes = [
+        [392.00, 0.02, 0.34, 0.042, -0.35], // G4
+        [493.88, 0.10, 0.36, 0.045, -0.15], // B4
+        [587.33, 0.18, 0.40, 0.048,  0.10], // D5
+        [739.99, 0.26, 0.45, 0.052,  0.28], // F#5
+        [880.00, 0.35, 0.75, 0.058,  0.40]  // A5 shimmer
+      ];
+      notes.forEach(([f, off, dur, v, p]) => {
+        synthVoice(f, now + off, dur, v, 'sine', 2600, 1100, p);
+        synthVoice(f * 2, now + off + 0.015, dur * 0.75, v * 0.22, 'sine', 3600, 1500, -p * 0.6);
+      });
+
+      // Warm sustained chord bed at the peak
+      [293.66, 440.00, 587.33, 739.99].forEach((f, idx) => {
+        synthVoice(f, now + 0.36, 0.78, 0.032, 'triangle', 1600, 680, (idx - 1.5) * 0.2);
+      });
+    } else if (type === 'open') {
+      // Sleek modern chest release: soft low swell + rising glass/bell chord
+      noiseBurst(now, 0.18, 0.02, 1400, 1.4, 0);
+      [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+        const t = now + 0.03 + i * 0.055;
+        synthVoice(f, t, 0.42, 0.042, 'sine', 3200, 1400, (i - 2) * 0.22);
+      });
+    } else {
+      // Sleek modern UI/loot roll: soft tactile pop + airy two-note pluck
+      noiseBurst(now, 0.055, 0.018, 1600, 2.2, -0.1);
+      synthVoice(329.63, now, 0.11, 0.036, 'sine', 2200, 950, -0.15); // E4 soft pluck
+      synthVoice(493.88, now + 0.048, 0.16, 0.040, 'sine', 2800, 1200, 0.15); // B4 airy fifth
+    }
+  } catch (e) {}
+}
 // Progress element is deliberately kept inside the settings panel.
 const progress=document.createElement('div');progress.className='progress';progress.innerHTML='<i id="progressBar"></i>';const status=$('runStatus');status.parentNode.insertBefore(progress,status.nextSibling);
 initChestSprites();render();syncButtons();
@@ -1388,27 +1582,26 @@ initChestSprites();render();syncButtons();
 <script>
 (function() {
   const wrap = document.querySelector('.wrap');
-  const DESIGN_WIDTH = 1380;
   let initialDPR = window.devicePixelRatio || 1;
 
   function fitToViewport() {
     if (!wrap) return;
-    // Reset scale temporarily to measure true natural height
     wrap.style.zoom = '1';
     wrap.style.transform = 'none';
     document.body.style.height = 'auto';
 
     const vw = document.documentElement.clientWidth;
+    if (vw <= 900) {
+      wrap.style.zoom = '1';
+      return;
+    }
+
     const vh = document.documentElement.clientHeight;
     const contentHeight = wrap.offsetHeight;
+    const scaleY = contentHeight > 0 ? vh / contentHeight : 1;
+    const scale = Math.min(1, Math.max(0.82, scaleY));
 
-    // Calculate scale factor so both width and full height fit inside the viewport
-    const scaleX = vw / DESIGN_WIDTH;
-    const scaleY = vh / contentHeight;
-    const scale = Math.min(scaleX, scaleY, 1);
-
-    if (scale < 0.995) {
-      // CSS zoom scales layout dimensions natively so the user can freely zoom back in with Ctrl + / pinch
+    if (scale < 0.992) {
       wrap.style.zoom = scale.toFixed(4);
     } else {
       wrap.style.zoom = '1';

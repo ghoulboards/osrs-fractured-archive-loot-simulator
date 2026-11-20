@@ -12,11 +12,12 @@ A browser-based loot simulator for **The Fractured Archive** raid in Old School 
   - *Batch*: up to 100,000 raids at once.
   - *Auto*: rolls on a timer.
 
-  Every mode pauses when you hit a purple so you can open the unique chest yourself.
+  Every mode pauses when you hit a purple so you can open the unique chest yourself. The unique stays hidden until you open it.
 - **Weighted unique table:** Rondache, Zorya's tome, Horn of Bran, Ascension crossbows, Obligator.
 - **Standard loot table:** three rolls per non-purple raid, with a 1/51 chance of ×5 quantity on each roll.
 - **Tertiary drops:** elite clues, the Archivist's folio, elemental fragments, and the Orion pet.
-- **Session stats:** dry streak, purple rate, GP estimate for uniques, a collection log, and CSV export.
+- **Session stats:** dry streak, purple rate, GP estimates for uniques and standard drops, a collection log, and CSV export.
+- **Session loot totals:** sorted by GP value, with a "+N" badge on whatever the latest raid added.
 - **Real item and chest sprites,** stored in this repo. The page makes no calls to the OSRS Wiki at runtime.
 
 ## Running locally
@@ -31,7 +32,7 @@ To add a new item, drop its inventory sprite into `images/items/` under that nam
 
 ## Data sources
 
-Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The duo personal rate is adjusted to 1/17 (a team rate of 1/8.5). GP values are a snapshot of Wiki prices for uniques only.
+Drop rates and quantities come from the OSRS Wiki page [Chest (The Fractured Archive)](https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)). The solo and duo personal rates are adjusted to 1/17 (the duo team rate is 1/8.5). GP values come from an estimated Grand Exchange price snapshot for uniques and standard drops.
 
 ## Disclaimer
 
