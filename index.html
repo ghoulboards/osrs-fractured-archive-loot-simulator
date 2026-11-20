@@ -722,11 +722,13 @@ button { cursor: pointer; color: inherit; }
   place-items: center;
   z-index: 30;
   padding: 18px;
+  overflow-y: auto; /* short viewports: scroll instead of clipping the modal */
 }
 .modalback.show { display: grid; }
 
 .modal {
   width: min(520px, 100%);
+  margin: auto; /* centers in the grid, but pins to top (scrollable) if taller than the viewport */
   border: 2px solid var(--bark-light);
   border-radius: 14px;
   background: linear-gradient(145deg, #1f261e, #101410);
@@ -817,7 +819,9 @@ button { cursor: pointer; color: inherit; }
 #mode button { position: relative; z-index: 2; pointer-events: auto; }
 .chest { cursor: pointer; image-rendering: pixelated; outline: none; }
 .chest:focus-visible { outline: 2px solid var(--lime-glow); outline-offset: 8px; border-radius: 10px; }
-#modalChest { margin: 8px auto 4px; transform: scale(1.12); transform-origin: center; cursor: pointer; }
+/* Bottom margin reserves room for the scaled chest + its "CLICK CHEST" label (bottom:-22px) so the label
+   stays inside the modal when closed and above the revealed item when open. */
+#modalChest { margin: 8px auto 56px; transform: scale(1.12); transform-origin: center; cursor: pointer; }
 #modalChest:hover { transform: scale(1.16) translateY(-3px); }
 #modalChest.open:hover { transform: scale(1.12); }
 #modalChest:after {
@@ -932,7 +936,13 @@ button { cursor: pointer; color: inherit; }
 .modalback.purple-event:before {
   content: '';
   position: fixed;
-  inset: -30%;
+  /* A square wider than the viewport diagonal (≤ 141.4vmax), centered, so it covers every corner at any rotation angle.
+     Centered with margins rather than translate() because the beam-spin animation owns `transform`. */
+  left: 50%;
+  top: 50%;
+  width: 150vmax;
+  height: 150vmax;
+  margin: -75vmax 0 0 -75vmax;
   pointer-events: none;
   background: repeating-conic-gradient(from 0deg at 50% 50%, #bd8bea00 0deg, #bd8bea20 3deg, #bd8bea00 7deg);
   animation: beam-spin 24s linear infinite;
