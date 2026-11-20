@@ -2,7 +2,9 @@
 
 A browser-based loot simulator for **The Fractured Archive** raid in Old School RuneScape. Roll chests, chase purples, and track your collection log, all in a single static page.
 
-**▶ Play it here:** https://ghoulboards.github.io/osrs-fractured-archive-loot-simulator/
+**▶ Play it here:** https://fractured-archive-loot-sim.pages.dev/
+
+(Mirror: https://ghoulboards.github.io/osrs-fractured-archive-loot-simulator/. Both deploy automatically on every push to `main`.)
 
 ## Features
 
