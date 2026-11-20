@@ -329,6 +329,14 @@ button { cursor: pointer; color: inherit; }
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
+#rollBtn {
+  min-height: 52px;
+  padding: 15px 18px;
+  font-size: 13px;
+  letter-spacing: 1.1px;
+  border-radius: 8px;
+}
+
 .primary:hover:not(:disabled) {
   filter: brightness(1.14);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 18px rgba(158, 240, 72, 0.45);
@@ -734,6 +742,131 @@ button { cursor: pointer; color: inherit; }
   text-align: center;
 }
 .footer a { color: var(--lime-glow); }
+
+
+.eyebrow.blade-purple {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  background: #7e22ce;
+  border-color: #9333ea;
+  box-shadow: 0 2px 10px rgba(126, 34, 206, 0.45);
+}
+
+.title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #88d948;
+  background: linear-gradient(180deg, #2b3b22, #172112);
+  color: var(--lime-glow);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(158, 240, 72, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.info-btn:hover {
+  transform: scale(1.08);
+  background: linear-gradient(180deg, #3b522e, #202e18);
+  box-shadow: 0 0 14px rgba(158, 240, 72, 0.42);
+}
+
+/* Session Intro / How It Works Pop-up */
+.guide-back {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 4, 0.84);
+  display: none;
+  place-items: center;
+  z-index: 40;
+  padding: 18px;
+}
+.guide-back.show {
+  display: grid;
+}
+.guide-modal {
+  width: min(560px, 95vw);
+  border: 2px solid var(--bark-light);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(158, 240, 72, 0.12), transparent 55%),
+    linear-gradient(155deg, #1f261e, #101410);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.92), 0 0 28px rgba(105, 184, 50, 0.16);
+  padding: 24px 26px 22px;
+  position: relative;
+  color: var(--text);
+  animation: modalIn 0.22s ease-out;
+}
+.guide-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(110, 87, 44, 0.5);
+}
+.guide-top h2 {
+  margin: 0;
+  font: 800 clamp(18px, 2.4vw, 23px) 'Cinzel', serif;
+  color: var(--lime-glow);
+  letter-spacing: 1px;
+}
+.guide-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #4d5748;
+  background: #171c16;
+  color: #d6e0d1;
+  font-size: 16px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.guide-close:hover {
+  border-color: var(--lime-glow);
+  color: var(--lime-glow);
+}
+.guide-body {
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #cbd6c5;
+}
+.guide-callout {
+  margin: 12px 0;
+  padding: 11px 13px;
+  border-radius: 8px;
+  border: 1px solid #9e67d6;
+  background: linear-gradient(110deg, rgba(84, 42, 120, 0.36), rgba(23, 18, 29, 0.88));
+  color: #f0dcff;
+}
+.guide-callout strong {
+  color: #e4b8ff;
+}
+.guide-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+.guide-list li {
+  margin-bottom: 7px;
+}
+.guide-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
 
 /* Unique Chest Modal */
 .modalback {
@@ -1268,7 +1401,7 @@ button { cursor: pointer; color: inherit; }
 }
 @media(max-width: 620px) {
   html, body, button, .chest, .modal, .modalback { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-  #rollBtn { min-height: 54px; padding: 16px 18px; font-size: 13px; letter-spacing: 1px; }
+  #rollBtn { min-height: 62px; padding: 18px 20px; font-size: 14px; letter-spacing: 1.2px; }
 }
 </style>
 </head>
@@ -1357,8 +1490,10 @@ button { cursor: pointer; color: inherit; }
   <div class="brand">
     <div class="sigil">✦</div>
     <div>
-      <div class="eyebrow">Old School RuneScape · Raid Rewards</div>
-      <h1>THE FRACTURED ARCHIVE</h1>
+      <div class="title-row">
+        <h1>THE FRACTURED ARCHIVE</h1>
+        <button type="button" class="info-btn" id="infoBtn" aria-label="How this simulator works" title="How this simulator works">i</button>
+      </div>
     </div>
   </div>
   <div class="topright">
@@ -1408,7 +1543,7 @@ button { cursor: pointer; color: inherit; }
   <div class="field"><label>Roll mode</label><div class="seg" id="mode"><button data-mode="single" class="active">Single</button><button data-mode="batch">Batch</button><button data-mode="auto">Auto</button></div></div>
   <div class="field" id="batchField" style="display:none"><label for="batchCount">Number of raids</label><input id="batchCount" type="number" min="1" max="100000" value="100"></div>
   <div class="field" id="autoField" style="display:none"><label for="autoDelay">Delay between raids</label><select id="autoDelay" class="select"><option value="0.6">1-Tick (0.6s)</option><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
-  <div class="field"><label>Simulation controls</label><div class="actions"><button class="primary" id="rollBtn">ROLL CHEST</button><button class="secondary" id="pauseBtn" disabled>PAUSE</button><button class="secondary" id="resumeBtn" disabled>RESUME</button></div><div class="auto-status" id="runStatus"></div></div>
+  <div class="field"><label>Simulation controls</label><div class="actions"><button class="primary" id="rollBtn">ROLL LOOT</button><button class="secondary" id="pauseBtn" disabled>PAUSE</button><button class="secondary" id="resumeBtn" disabled>RESUME</button></div><div class="auto-status" id="runStatus"></div></div>
   <div class="field"><label>Options</label><label class="checkline"><input type="checkbox" id="sound" checked> Sound effects</label><label class="checkline" style="margin-top:9px"><input type="checkbox" id="prices" checked> Include GP estimates</label><small id="priceHint">GP totals pull live OSRS Wiki Grand Exchange prices on load, with hardcoded fallbacks if offline.</small></div>
   <div class="actions"><button class="secondary" id="exportBtn">EXPORT CSV</button><button class="danger" id="resetBtn">RESET SESSION</button></div>
 </aside>
@@ -1425,7 +1560,7 @@ button { cursor: pointer; color: inherit; }
   </svg>
 
   <div class="hero-copy">
-    <div class="eyebrow">The Blade has brought you here</div>
+    <div class="eyebrow blade-purple">The Blade has brought you here</div>
     <h2>Your chest awaits.</h2>
     <p>Complete simulated raids, claim your personal rewards, and see how fortune treats you. A purple pauses the simulation until you open the unique chest.</p>
     <div class="ratebox">
@@ -1477,6 +1612,29 @@ button { cursor: pointer; color: inherit; }
 </div>
 
 <div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Session data stays in this browser tab.</div>
+</div>
+
+
+<div class="guide-back" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+  <div class="guide-modal" id="guideCard">
+    <div class="guide-top">
+      <h2 id="guideTitle">HOW THE SIMULATOR WORKS</h2>
+      <button type="button" class="guide-close" id="guideCloseX" aria-label="Collapse guide">✕</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-callout">
+        <strong>Personal Loot Simulator Only:</strong> This tool simulates <strong>personal purples received</strong> for your own chest rolls—it does <strong>not</strong> track or care about total "purples seen" across a raid team. Team size, contribution %, and deaths only adjust your personal roll rate.
+      </div>
+      <ul class="guide-list">
+        <li><strong>Rolling Loot:</strong> Use <strong>Roll Loot</strong> in Single, Batch, or Auto mode to simulate completions. Non-purple raids roll standard loot along with any eligible tertiary drops.</li>
+        <li><strong>Unique &amp; Pet Reveals:</strong> Rolling a personal purple or first-time pet pauses automatic/batch runs and opens the reveal modal so you can claim your reward.</li>
+        <li><strong>Tracking &amp; Export:</strong> Your collection log, session loot totals, estimated GP values, and CSV export update automatically in your local browser session.</li>
+      </ul>
+    </div>
+    <div class="guide-footer">
+      <button type="button" class="primary" id="guideCollapseBtn">UNDERSTOOD</button>
+    </div>
+  </div>
 </div>
 
 <div class="modalback" id="modal">
@@ -1605,7 +1763,7 @@ function setDefaultContribution(){
 
 function setMode(mode){
  if(mode!==state.mode && state.running){clearInterval(state.timer);state.running=false;state.paused=false;state.batchRemaining=0;$('runStatus').textContent='Previous run stopped · mode changed.';}
- state.mode=mode;document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));$('batchField').style.display=mode==='batch'?'block':'none';$('autoField').style.display=mode==='auto'?'block':'none';$('rollBtn').textContent=mode==='single'?'ROLL CHEST':mode==='batch'?'ROLL BATCH':'START AUTO ROLL';syncButtons();
+ state.mode=mode;document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));$('batchField').style.display=mode==='batch'?'block':'none';$('autoField').style.display=mode==='auto'?'block':'none';$('rollBtn').textContent=mode==='single'?'ROLL LOOT':mode==='batch'?'ROLL BATCH':'START AUTO ROLL';syncButtons();
 }
 document.querySelectorAll('#mode button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
 
@@ -1926,7 +2084,7 @@ $('pauseBtn').addEventListener('click',()=>{state.paused=true;clearInterval(stat
 $('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearSavedSession();clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});hideAllModalSections();$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
 function render(){scheduleSave();const d=getPersonalDenom();
 const displayCounts=Object.assign({},state.counts);
-$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;resolveItemSprite(uniqueDropEntry.item).then(url=>{if(hImg.dataset.forItem===uniqueDropEntry.item.name&&url){hImg.src=url;hImg.style.display='block';}else{hImg.style.display='none';}});}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique reward obtained!':'Awaiting your reward';
+$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;resolveItemSprite(uniqueDropEntry.item).then(url=>{if(hImg.dataset.forItem===uniqueDropEntry.item.name&&url){hImg.src=url;hImg.style.display='block';}else{hImg.style.display='none';}});}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique Loot Obtained!':(state.raids>0?'Standard Loot Found':'Awaiting your reward');
  const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>{
  const hiddenUnique=!!x.pending;
  const displayName=hiddenUnique?'Mystery unique':x.item.name;
@@ -2442,5 +2600,63 @@ if(state.pending)showUnique(state.pending);
   }, { passive: false });
 })();
 </script>
+
+<script>
+(function() {
+  const SESSION_GUIDE_KEY = 'fractured-archive-session-guide-seen';
+  const guideModal = document.getElementById('guideModal');
+  const infoBtn = document.getElementById('infoBtn');
+  const guideCloseX = document.getElementById('guideCloseX');
+  const guideCollapseBtn = document.getElementById('guideCollapseBtn');
+
+  function openGuide() {
+    if (!guideModal) return;
+    guideModal.classList.add('show');
+    if (guideCollapseBtn) guideCollapseBtn.focus();
+  }
+
+  function collapseGuide() {
+    if (!guideModal) return;
+    guideModal.classList.remove('show');
+    try {
+      sessionStorage.setItem(SESSION_GUIDE_KEY, '1');
+    } catch (e) {}
+    if (infoBtn) infoBtn.focus();
+  }
+
+  if (infoBtn) {
+    infoBtn.addEventListener('click', openGuide);
+  }
+  if (guideCloseX) {
+    guideCloseX.addEventListener('click', collapseGuide);
+  }
+  if (guideCollapseBtn) {
+    guideCollapseBtn.addEventListener('click', collapseGuide);
+  }
+  if (guideModal) {
+    guideModal.addEventListener('click', function(e) {
+      if (e.target === guideModal) {
+        collapseGuide();
+      }
+    });
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && guideModal && guideModal.classList.contains('show')) {
+      collapseGuide();
+    }
+  });
+
+  let seenThisSession = false;
+  try {
+    seenThisSession = sessionStorage.getItem(SESSION_GUIDE_KEY) === '1';
+  } catch (e) {
+    seenThisSession = false;
+  }
+  if (!seenThisSession) {
+    openGuide();
+  }
+})();
+</script>
+
 </body>
 </html>
