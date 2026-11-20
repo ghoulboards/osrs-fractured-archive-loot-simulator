@@ -880,6 +880,10 @@ button { cursor: pointer; color: inherit; }
 }
 .modalback.show { display: grid; }
 
+.modalback.can-dismiss,
+.modalback.can-dismiss .modal {
+  cursor: pointer;
+}
 .modal {
   width: min(740px, 95vw);
   min-height: 520px;
@@ -977,14 +981,29 @@ button { cursor: pointer; color: inherit; }
 #mode button { position: relative; z-index: 2; pointer-events: auto; }
 .chest { cursor: pointer; image-rendering: pixelated; outline: none; }
 .chest:focus-visible { outline: 2px solid var(--lime-glow); outline-offset: 8px; border-radius: 10px; }
-#modalChest { width: 270px; height: 220px; margin: 16px auto 12px; transform: scale(1.16); transform-origin: center; cursor: pointer; }
-#modalChest:hover { transform: scale(1.2) translateY(-4px); }
-#modalChest.open:hover { transform: scale(1.16); }
+.chest-stage-modal {
+  position: relative;
+  width: 340px;
+  height: 275px;
+  margin: 12px auto 18px;
+  display: grid;
+  place-items: center;
+}
+#modalChest {
+  width: 320px;
+  height: 260px;
+  margin: 0;
+  transform: scale(1.06);
+  transform-origin: center;
+  cursor: pointer;
+}
+#modalChest:hover { transform: scale(1.1) translateY(-4px); }
+#modalChest.open:hover { transform: scale(1.06); }
 #modalChest:after {
   content: 'CLICK CHEST';
   position: absolute;
   left: 50%;
-  bottom: -24px;
+  bottom: -22px;
   transform: translateX(-50%);
   white-space: nowrap;
   font: 700 10px 'Roboto Mono';
@@ -992,7 +1011,45 @@ button { cursor: pointer; color: inherit; }
   color: var(--lime-glow);
   text-shadow: 0 2px 5px #000;
 }
-#modalChest.open:after { content: 'CLICK TO CONTINUE'; }
+#modalChest.open:after { content: 'CLICK ANYWHERE TO CONTINUE'; }
+
+.chest-stage-modal .chest-center-reveal {
+  position: absolute;
+  top: 53%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  margin: 0;
+  width: 96px;
+  height: 96px;
+  border-radius: 16px;
+  pointer-events: none;
+}
+.chest-stage-modal .chest-center-reveal img {
+  width: 68px;
+  height: 68px;
+}
+.chest-stage-modal .chest-center-reveal .fallback {
+  font-size: 28px;
+}
+.click-anywhere-hint {
+  position: relative;
+  z-index: 2;
+  margin-top: 14px;
+  font: 700 11px 'Roboto Mono', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffe27a;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  animation: pulseHint 1.8s ease-in-out infinite;
+}
+.modalback.purple-event .click-anywhere-hint {
+  color: #dfbfff;
+}
+@keyframes pulseHint {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 1; }
+}
 
 .modal-instruction {
   position: relative;
@@ -1642,22 +1699,24 @@ button { cursor: pointer; color: inherit; }
     <div class="eyebrow" id="modalEyebrow">A unique reward has appeared</div>
     <h2 id="modalHeading">THE UNIQUE CHEST</h2>
     <p id="uniqueInstruction" class="modal-instruction">A purple! Click the chest to reveal your reward.</p>
-    <div class="chest" id="modalChest" role="button" tabindex="0" aria-label="Open unique reward chest">
-      <div class="lid"></div>
-      <div class="chest-body"></div>
-      <div class="chest-band"></div>
-      <div class="lock"></div>
+    <div class="chest-stage-modal" id="modalChestWrap">
+      <div class="chest" id="modalChest" role="button" tabindex="0" aria-label="Open unique reward chest">
+        <div class="lid"></div>
+        <div class="chest-body"></div>
+        <div class="chest-band"></div>
+        <div class="lock"></div>
+      </div>
+      <div class="reveal-item chest-center-reveal" id="revealItemBox" style="display:none"><img id="uniqueImage" alt="Unique reward"><span class="fallback" id="uniqueFallback" style="display:none"></span></div>
     </div>
     <div id="revealArea" style="display:none">
-      <div class="reveal-item"><img id="uniqueImage" alt="Unique reward"><span class="fallback" id="uniqueFallback" style="display:none"></span></div>
       <h2 id="uniqueName"></h2>
       <p id="uniqueRarity"></p>
     </div>
     <div id="petOnlyArea" style="display:none">
       <div class="reveal-item"><img id="petOnlyImage" alt="Orion (pet)"><span class="fallback" id="petOnlyFallback" style="display:none">OR</span></div>
-      <h2 id="petOnlyHeading">YOU GOT THE PET!</h2>
+      <h2 id="petOnlyHeading">Orion</h2>
       <p id="petOnlySub">Orion has joined your collection.</p>
-      <button type="button" class="pet-continue-btn" id="petOnlyContinueBtn">Click to continue</button>
+      <div class="click-anywhere-hint">Click anywhere to continue</div>
     </div>
     <div id="comboArea" style="display:none">
       <div class="combo-rewards">
@@ -1668,13 +1727,13 @@ button { cursor: pointer; color: inherit; }
           <div class="combo-sub" id="comboUniqueSub"></div>
         </div>
         <div class="combo-card pet-card">
-          <div class="combo-label">YOU GOT THE PET!</div>
+          <div class="combo-label">Pet Obtained</div>
           <div class="reveal-item"><img id="comboPetImg" alt="Orion (pet)"><span class="fallback" id="comboPetFallback" style="display:none">OR</span></div>
-          <div class="combo-title">Orion (pet)</div>
+          <div class="combo-title">Orion</div>
           <div class="combo-sub">1 / 750 tertiary</div>
         </div>
       </div>
-      <button type="button" class="pet-continue-btn" id="comboContinueBtn">Click to continue</button>
+      <div class="click-anywhere-hint">Click anywhere to continue</div>
     </div>
   </div>
 </div>
@@ -1906,11 +1965,6 @@ function rollRaid(){
  }:null;
  playSound((personalPurple||gotFirstPet)?'purple':'roll');
  render();
- if(personalPurple&&gotFirstPet){
-  showComboUniqueAndPet(mainDrop,petItem);
-  stopAuto(true);
-  return true;
- }
  if(personalPurple){
   showUnique(mainDrop);
   stopAuto(true);
@@ -1925,9 +1979,11 @@ function rollRaid(){
 }
 
 function hideAllModalSections(){
- $('modal').classList.remove('show','purple-event','gold-event');
+ $('modal').classList.remove('show','purple-event','gold-event','can-dismiss');
  $('modalCard').classList.remove('pet-only-modal');
+ $('modalChestWrap').style.display='none';
  $('modalChest').style.display='none';
+ $('revealItemBox').style.display='none';
  $('revealArea').style.display='none';
  $('petOnlyArea').style.display='none';
  $('comboArea').style.display='none';
@@ -1938,8 +1994,10 @@ function showUnique(item){
  $('modal').classList.add('show','purple-event');
  $('modalEyebrow').textContent='A unique reward has appeared';
  $('modalHeading').textContent='THE UNIQUE CHEST';
+ $('modalChestWrap').style.display='grid';
  $('modalChest').style.display='';
  $('modalChest').classList.remove('open');
+ $('revealItemBox').style.display='none';
  $('uniqueInstruction').style.display='';
  $('uniqueInstruction').textContent='A purple! Click the chest to reveal your reward.';
  $('uniqueName').textContent=item.name;
@@ -1953,13 +2011,13 @@ function showUnique(item){
 
 function showFirstPetModal(petItem){
  hideAllModalSections();
- $('modal').classList.add('show','gold-event');
+ $('modal').classList.add('show','gold-event','can-dismiss');
  $('modalCard').classList.add('pet-only-modal');
  $('modalEyebrow').textContent='Pet obtained';
  $('modalHeading').textContent='YOU GOT THE PET!';
  $('uniqueInstruction').style.display='none';
  $('petOnlyArea').style.display='block';
- $('petOnlyHeading').textContent='YOU GOT THE PET!';
+ $('petOnlyHeading').textContent='Orion';
  $('petOnlySub').textContent='Orion has joined your collection.';
  const img=$('petOnlyImage');
  const fb=$('petOnlyFallback');
@@ -1979,7 +2037,7 @@ function showFirstPetModal(petItem){
 
 function showComboUniqueAndPet(uniqueItem,petItem){
  hideAllModalSections();
- $('modal').classList.add('show','purple-event','gold-event');
+ $('modal').classList.add('show','purple-event','gold-event','can-dismiss');
  $('modalEyebrow').textContent='A unique & pet have appeared!';
  $('modalHeading').textContent='UNIQUE + PET!';
  $('uniqueInstruction').style.display='none';
@@ -2034,10 +2092,16 @@ function claimUnique(){
  const item=state.pending;
  if(!item)return;
  if($('revealArea').style.display==='none'){
-  $('modalChest').classList.add('open');
-  $('revealArea').style.display='block';
-  $('uniqueInstruction').textContent='Reward revealed! Click the opened chest to continue.';
   playSound('open');
+  if(state.pendingModal&&state.pendingModal.unique&&state.pendingModal.pet){
+   showComboUniqueAndPet(state.pendingModal.unique,state.pendingModal.pet);
+   return;
+  }
+  $('modalChest').classList.add('open');
+  $('revealItemBox').style.display='grid';
+  $('revealArea').style.display='block';
+  $('modal').classList.add('can-dismiss');
+  $('uniqueInstruction').textContent='Click anywhere to continue.';
   return;
  }
  state.counts[item.name]=(state.counts[item.name]||0)+1;
@@ -2071,9 +2135,24 @@ function claimFirstPetModal(){
  playSound('open');
  finishModalAndResume();
 }
-$('modalChest').addEventListener('click',claimUnique);$('modalChest').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();claimUnique();}});
-$('petOnlyContinueBtn').addEventListener('click',claimFirstPetModal);
-$('comboContinueBtn').addEventListener('click',claimComboModal);
+$('modalChest').addEventListener('click',e=>{
+ if($('revealArea').style.display==='none'){e.stopPropagation();claimUnique();}
+});
+$('modalChest').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();claimUnique();}});
+$('modal').addEventListener('click',()=>{
+ if(!$('modal').classList.contains('show'))return;
+ if($('petOnlyArea').style.display!=='none'){claimFirstPetModal();return;}
+ if($('comboArea').style.display!=='none'){claimComboModal();return;}
+ if($('revealArea').style.display!=='none'){claimUnique();return;}
+});
+document.addEventListener('keydown',e=>{
+ if(!$('modal').classList.contains('show'))return;
+ if(e.key==='Escape'||e.key==='Enter'||e.key===' '){
+  if($('petOnlyArea').style.display!=='none'){e.preventDefault();claimFirstPetModal();}
+  else if($('comboArea').style.display!=='none'){e.preventDefault();claimComboModal();}
+  else if($('revealArea').style.display!=='none'){e.preventDefault();claimUnique();}
+ }
+});
 function oneRoll(){if(state.pending)return;return rollRaid()}
 function continueBatch(){if(!state.running||state.paused||state.pending)return;if(state.batchRemaining<=0){state.running=false;state.batchRemaining=0;syncButtons();$('runStatus').textContent='Batch complete.';return;}state.batchRemaining--;const purple=rollRaid();if(!purple){if(state.batchRemaining>0){setTimeout(continueBatch,0)}else{state.running=false;syncButtons();$('runStatus').textContent='Batch complete.'}}else{$('runStatus').textContent=`Purple! ${state.batchRemaining} batch raids waiting.`;}}
 function scheduleAuto(){if(!state.running||state.paused||state.pending)return;const delayVal=$('autoDelay').value;const delayLabel=delayVal==='0.6'?'1-Tick (0.6s)':delayVal+'s';const ms=+delayVal*1000;$('runStatus').textContent=`Auto rolling · next raid in ${delayLabel}`;$('progressBar').style.width='0%';let start=Date.now();clearInterval(state.timer);state.timer=setInterval(()=>{let pct=Math.min(100,(Date.now()-start)/ms*100);$('progressBar').style.width=pct+'%';if(pct>=100){clearInterval(state.timer);if(state.running&&!state.paused&&!state.pending){const purple=rollRaid();if(!purple)scheduleAuto();}}},50)}
@@ -2098,9 +2177,9 @@ $('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(sta
  const isFolio=!hiddenUnique&&x.item.name==="Archivist's folio (inert)";
  const isFiveX=!hiddenUnique&&!!x.fiveX;
  const isClue=!hiddenUnique&&x.item.name==='Elite clue scroll';
- const isSubsequentPet=!hiddenUnique&&x.item.name==='Orion (pet)'&&!!x.subsequentPet;
- const specialClass=!hiddenUnique?(x.item.kind==='unique'?'purple-drop':(isSubsequentPet?'pet-subsequent-drop':(isClue?'clue-drop':(fragClassMap[x.item.name]||(isFolio?'folio-drop':(isFiveX?'five-x-drop':'')))))):''
- const tagClass=!hiddenUnique?(x.item.kind==='unique'?'purple':(isSubsequentPet?'pet-purple':(isClue?'clue':(isFiveX?'five-x':(x.item.kind==='tertiary'||x.item.kind==='fragment'?'tertiary':''))))):'';
+ const isPetDrop=!hiddenUnique&&x.item.name==='Orion (pet)';
+ const specialClass=!hiddenUnique?(x.item.kind==='unique'?'purple-drop':(isPetDrop?'pet-subsequent-drop':(isClue?'clue-drop':(fragClassMap[x.item.name]||(isFolio?'folio-drop':(isFiveX?'five-x-drop':'')))))):''
+ const tagClass=!hiddenUnique?(x.item.kind==='unique'?'purple':(isPetDrop?'pet-purple':(isClue?'clue':(isFiveX?'five-x':(x.item.kind==='tertiary'||x.item.kind==='fragment'?'tertiary':''))))):'';
  const fiveXBadge=isFiveX?' <span class="five-x-tag">5x</span>':'';
  const fiveXMeta=isFiveX?' · 5x roll':'';
  return `<div class="last-drop ${specialClass}"><div class="looticon">${iconHtml}</div><div><div class="lootname">${esc(displayName)}${fiveXBadge}</div><div class="lootmeta">${esc(x.source)}${fiveXMeta}${hiddenUnique?' · Open the unique chest to reveal':''}</div></div><div class="tag ${tagClass}">${hiddenUnique?'HIDDEN':x.qty>1?'×'+fmt(x.qty):'×1'}</div></div>`;
@@ -2110,18 +2189,34 @@ $('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(sta
 const entries=Object.entries(displayCounts).sort((a,b)=>{const itemA=allItems.find(x=>x.name===a[0])||{};const itemB=allItems.find(x=>x.name===b[0])||{};const valA=getItemPrice(itemA)*a[1];const valB=getItemPrice(itemB)*b[1];return valB-valA||b[1]-a[1];});b.innerHTML=entries.length?entries.slice(0,80).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};const estTotal=getItemPrice(item)*count;const added=state.recentAdded[name]||0;const addedBadge=added>0?` <span class="loot-added">+${fmt(added)}</span>`:'';const metaText=!showPrices?'GP estimates hidden':estTotal>0?'Est. '+gp(estTotal)+' GP total':'Untradeable / 0 GP';const isUnique=item.kind==='unique';return `<div class="logrow${isUnique?' purple-drop':''}"><div class="looticon">${lootIconHTML(item)}</div><div><div class="lootname">${esc(name)} (${fmt(count)})${addedBadge}</div><div class="lootmeta">${metaText}</div></div><div class="tag${isUnique?' purple':''}">${fmt(count)}</div></div>`}).join(''):'<div class="empty">Your accumulated loot will appear here.</div>';
  hydrateLootSprites();
 }
-// Resolve real inventory sprites through the OSRS Wiki MediaWiki API.
+// Resolve inventory & chest sprites from the repository's ./images/items/ and ./images/chests/ folders first,
+// falling back to the OSRS Wiki MediaWiki API only if a local/repo sprite is missing.
+const REPO_ITEMS_BASE='images/items/';
+const REPO_CHESTS_BASE='images/chests/';
 const WIKI_API='https://oldschool.runescape.wiki/api.php';
 const wikiFileCache=new Map();
 const wikiPageCache=new Map();
 const itemSpriteCache=new Map();
 const spriteRequested=new Set(), spriteLoadedNames=new Set();
 let spriteLoaded=0, spriteExpected=0;
+
+function repoAssetUrl(base,filename){
+ return base+encodeURIComponent(filename);
+}
+function probeImageUrl(url){
+ return new Promise(resolve=>{
+  const img=new Image();
+  img.onload=()=>resolve(url);
+  img.onerror=()=>resolve(null);
+  img.src=url;
+ });
+}
 function itemImageCandidates(item){
  const n=item.name||'',c=[];
  if(item.file)c.push(item.file);
  c.push(n+'.png');
  if(n.includes(' (uncharged)'))c.push(n.replace(' (uncharged)','')+'.png');
+ if(n.includes(' (pet)'))c.push(n.replace(' (pet)','')+'.png');
  const aliases={
   'Elite clue scroll':['Clue scroll (elite).png'],
   'Ascension crossbows':['Ascension crossbow.png','Ascension crossbows.png'],
@@ -2176,9 +2271,25 @@ async function resolveWikiPageImage(item){
  return null;
 }
 async function resolveItemSprite(item){
+ if(!item||!item.name)return null;
  if(itemSpriteCache.has(item.name))return itemSpriteCache.get(item.name);
- const promise=(async()=>{const files=itemImageCandidates(item);await resolveWikiFiles(files);for(const f of files){const u=wikiFileCache.get(fileKey(f));if(u)return u;}return await resolveWikiPageImage(item);})();
- itemSpriteCache.set(item.name,promise);return promise;
+ const promise=(async()=>{
+  const files=itemImageCandidates(item);
+  // 1. Primary: check repository images/items/ folder first
+  for(const f of files){
+   const repoUrl=await probeImageUrl(repoAssetUrl(REPO_ITEMS_BASE,f));
+   if(repoUrl)return repoUrl;
+  }
+  // 2. Backup: OSRS Wiki file & pageimage lookup
+  await resolveWikiFiles(files);
+  for(const f of files){
+   const u=wikiFileCache.get(fileKey(f));
+   if(u)return u;
+  }
+  return await resolveWikiPageImage(item);
+ })();
+ itemSpriteCache.set(item.name,promise);
+ return promise;
 }
 function updateSpriteStatus(){const el=$('spriteStatus');if(el)el.textContent=spriteExpected?`ITEM SPRITES · ${spriteLoaded}/${spriteExpected} LOADED`:'ITEM SPRITES · CONNECTING';}
 function hydrateLootSprites(root=document){
@@ -2189,9 +2300,9 @@ function hydrateLootSprites(root=document){
   if(!spriteRequested.has(item.name)){spriteRequested.add(item.name);spriteExpected=spriteRequested.size;}updateSpriteStatus();
   resolveItemSprite(item).then(url=>{
    if(!img.isConnected)return;
-   if(!url){img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
+   if(!url){img.style.display='none';img.dataset.loading='';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';return;}
    img.onload=()=>{img.dataset.loaded='1';img.dataset.loading='';if(!spriteLoadedNames.has(item.name)){spriteLoadedNames.add(item.name);spriteLoaded=spriteLoadedNames.size;}updateSpriteStatus();};
-   img.onerror=()=>{img.style.display='none';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';};
+   img.onerror=()=>{img.style.display='none';img.dataset.loading='';if(img.nextElementSibling)img.nextElementSibling.style.display='grid';};
    img.src=url;
   });
  });
@@ -2202,17 +2313,29 @@ async function setItemImage(img,item){
  if(url){img.onload=()=>{img.style.display='block';$('uniqueFallback').style.display='none';};img.onerror=()=>{img.style.display='none';$('uniqueFallback').style.display='block';};img.src=url;}
  else{img.style.display='none';$('uniqueFallback').style.display='block';}
 }
+async function resolveChestAsset(candidates){
+ for(const f of candidates){
+  const repoUrl=await probeImageUrl(repoAssetUrl(REPO_CHESTS_BASE,f));
+  if(repoUrl)return repoUrl;
+ }
+ await resolveWikiFiles(candidates);
+ for(const f of candidates){
+  const u=wikiFileCache.get(fileKey(f));
+  if(u)return u;
+ }
+ return null;
+}
 async function initChestSprites(){
- const files=[
-  'Chest (The Fractured Archive, unique, closed).png',
-  'Chest (The Fractured Archive, unique, opened).png',
+ const closedUrl=await resolveChestAsset([
+  'Chest (The Fractured Archive, unique, closed).png'
+ ]);
+ const openUrl=await resolveChestAsset([
+  'Chest (The Fractured Archive, unique, opened).png'
+ ]);
+ const stdUrl=(await resolveChestAsset([
   'Chest (The Fractured Archive, standard, mine).png',
   'Chest (The Fractured Archive, standard, mine).webp'
- ];
- await resolveWikiFiles(files);
- const closedUrl=wikiFileCache.get(fileKey(files[0]));
- const openUrl=wikiFileCache.get(fileKey(files[1]));
- const stdUrl=wikiFileCache.get(fileKey(files[2]))||wikiFileCache.get(fileKey(files[3]))||'https://oldschool.runescape.wiki/images/Chest_%28The_Fractured_Archive%2C_standard%2C_mine%29.webp?7ebc3';
+ ]))||'https://oldschool.runescape.wiki/images/Chest_%28The_Fractured_Archive%2C_standard%2C_mine%29.webp?7ebc3';
 
  document.querySelectorAll('.chest').forEach(chest=>{
   if(!closedUrl||!openUrl)return;
