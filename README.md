@@ -19,6 +19,7 @@ A browser-based loot simulator for **The Fractured Archive** raid in Old School 
 - **Session stats:** dry streak, purple rate, GP estimates for uniques and standard drops, a collection log, and CSV export.
 - **Session loot totals:** sorted by GP value, with a "+N" badge on whatever the latest raid added.
 - **Real item and chest sprites,** stored in this repo. The page makes no calls to the OSRS Wiki at runtime.
+- **Works on phones.** At 900px wide or narrower, the layout becomes a single column with larger text and buttons, and a roll bar stays fixed at the bottom of the screen.
 
 ## Running locally
 
@@ -29,6 +30,18 @@ There is no build step and nothing to install. Open `index.html` in any modern b
 All item and chest images live in `images/` and were downloaded once from the [OSRS Wiki](https://oldschool.runescape.wiki/). Item sprites are found by item name: the name is lowercased, apostrophes are removed, and other symbols become hyphens. For example, `Zorya's tome (uncharged)` → `images/items/zoryas-tome-uncharged.png`.
 
 To add a new item, drop its inventory sprite into `images/items/` under that name. If a sprite file is missing, the page shows a two-letter text icon instead.
+
+## Updating to a new design version
+
+New designs arrive as standalone HTML files that still load sprites from the Wiki API. To bring one in and re-apply this site's changes:
+
+```sh
+cp ~/Downloads/fractured-archive-loot-simulator-vNN.html index.html
+node tools/apply-site-patches.mjs index.html   # local sprites, modal/beam fixes, mobile layout, bug fixes
+node tools/fetch-sprites.mjs index.html .      # only if the new design adds items; skips sprites already cached
+```
+
+Each patch must match its spot in the file exactly once. If a new design changes one of those spots, the script stops and names the patch that needs updating, so nothing is skipped without you knowing.
 
 ## Data sources
 
