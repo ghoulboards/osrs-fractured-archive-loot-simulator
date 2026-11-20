@@ -432,11 +432,26 @@ button { cursor: pointer; color: inherit; }
   text-shadow: 0 0 8px rgba(158, 240, 72, 0.35);
 }
 
+.ratebox strong.last-unique-val {
+  font-size: 14px;
+  line-height: 1.25;
+  color: #e4b8ff;
+  text-shadow: 0 0 10px rgba(189, 139, 234, 0.4);
+}
+
 .ratebox span {
+  display: block;
   font-size: 9px;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+
+.ratebox .hero-sub {
+  display: block;
+  font-size: 9px;
+  color: #98a393;
+  margin-top: 2px;
 }
 
 .chest-stage {
@@ -1622,8 +1637,8 @@ button { cursor: pointer; color: inherit; }
     <p>Complete simulated raids, claim your personal rewards, and see how fortune treats you. A purple pauses the simulation until you open the unique chest.</p>
     <div class="ratebox">
       <div><strong id="heroRate">1 / 42</strong><span>Personal purple rate</span></div>
-      <div><strong id="dryDisplay">0</strong><span>Raids since purple</span></div>
       <div><strong id="averageDisplay">42</strong><span>Expected raids</span></div>
+      <div id="lastUniqueBox" style="display:none"><strong id="lastUniqueDisplay" class="last-unique-val"></strong><span>Last unique obtained</span><small class="hero-sub" id="lastUniqueRaidSub"></small></div>
     </div>
   </div>
   <div class="chest-stage">
@@ -1769,7 +1784,7 @@ const tertiaries=[
  {name:'Orion (pet)',kind:'tertiary',denom:750,price:0,icon:'OR',file:'Orion.png'}
 ];
 const allItems=[...uniques.map(x=>({...x,kind:'unique'})),...tertiaries,...standard];
-const state={raids:0,purples:0,expectedPurples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,mode:'single',running:false,paused:false,batchRemaining:0,timer:null,rollTimer:null};
+const state={raids:0,purples:0,expectedPurples:0,lastUnique:null,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,mode:'single',running:false,paused:false,batchRemaining:0,timer:null,rollTimer:null};
 const $=id=>document.getElementById(id);const fmt=n=>Math.round(n).toLocaleString('en-US');const gp=n=>{if(n>=1e9)return (n/1e9).toFixed(2)+'B';if(n>=1e6)return (n/1e6).toFixed(2)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return fmt(n)};const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;const chance=d=>Math.random()<1/d;
 
 function formatDenom(d){
@@ -1945,6 +1960,7 @@ function rollRaid(){
  if(personalPurple){
   mainDrop=pickUnique();
   state.purples++;
+  state.lastUnique={name:mainDrop.name,raid:state.raids};
   state.bestDry=Math.max(state.bestDry,state.dry-1);
   state.dry=0;
   state.pending=mainDrop;
@@ -2166,7 +2182,7 @@ function stopAuto(interrupt=false){clearInterval(state.timer);if(interrupt){$('r
 function syncButtons(){$('pauseBtn').disabled=!state.running||state.paused;$('resumeBtn').disabled=!state.running||!state.paused;$('rollBtn').disabled=state.running||!!state.pending;}
 $('rollBtn').addEventListener('click',()=>{if(state.pending)return;if(state.mode==='single'){oneRoll();return;}state.running=true;state.paused=false;syncButtons();if(state.mode==='batch'){state.batchRemaining=Math.max(1,Math.min(100000,parseInt($('batchCount').value)||1));$('runStatus').textContent=`Batch running · ${state.batchRemaining} raids queued` ;continueBatch();}else{scheduleAuto();}});
 $('pauseBtn').addEventListener('click',()=>{state.paused=true;clearInterval(state.timer);state.running=true;$('runStatus').textContent='Simulation paused.';syncButtons()});$('resumeBtn').addEventListener('click',()=>{state.paused=false;state.running=true;syncButtons();if(state.mode==='batch')continueBatch();else if(state.mode==='auto')scheduleAuto()});
-$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearSavedSession();clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,expectedPurples:0,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});hideAllModalSections();$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
+$('resetBtn').addEventListener('click',()=>{if(!confirm('Reset all simulated raids, loot, collection log and statistics?'))return;clearSavedSession();clearInterval(state.timer);Object.assign(state,{raids:0,purples:0,expectedPurples:0,lastUnique:null,dry:0,bestDry:0,gp:0,counts:{},recentAdded:{},history:[],lastRaid:[],owned:new Set(),pending:null,running:false,paused:false,batchRemaining:0});hideAllModalSections();$('runStatus').textContent='';$('progressBar').style.width='0%';render();syncButtons()});
 function lerpColor(hexA,hexB,t){
  const cl=Math.max(0,Math.min(1,t));
  const a=parseInt(hexA.slice(1),16),b=parseInt(hexB.slice(1),16);
@@ -2254,7 +2270,22 @@ function updateExpectedAndDryDisplay(){
 }
 function render(){scheduleSave();const d=getPersonalDenom();
 const displayCounts=Object.assign({},state.counts);
-$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);$('dryDisplay').textContent=fmt(state.dry);updateExpectedAndDryDisplay();$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;resolveItemSprite(uniqueDropEntry.item).then(url=>{if(hImg.dataset.forItem===uniqueDropEntry.item.name&&url){hImg.src=url;hImg.style.display='block';}else{hImg.style.display='none';}});}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique Loot Obtained!':(state.raids>0?'Standard Loot Found':'Awaiting your reward');
+$('raidsStat').textContent=fmt(state.raids);$('purplesStat').textContent=fmt(state.purples);$('purpleRateStat').textContent=state.raids?(state.purples/state.raids*100).toFixed(2)+'% of raids':'0.00% of raids';$('uniqueStat').textContent=uniques.filter(x=>displayCounts[x.name]).length+' / 5';const visibleGp=state.gp;$('gpStat').textContent=$('prices').checked?gp(visibleGp):'Hidden';$('dryStat').textContent=fmt(state.dry);
+const lastUBox=$('lastUniqueBox'),lastU=$('lastUniqueDisplay'),lastURaid=$('lastUniqueRaidSub');
+const hasLastUnique=!!(state.lastUnique&&state.lastUnique.name);
+if(lastUBox){
+ lastUBox.style.display=hasLastUnique?'':'none';
+}
+if(hasLastUnique){
+ if(lastU){
+  lastU.textContent=state.lastUnique.name;
+  lastU.classList.add('last-unique-val');
+ }
+ if(lastURaid){
+  lastURaid.textContent=`Obtained on raid #${fmt(state.lastUnique.raid||0)}`;
+ }
+}
+updateExpectedAndDryDisplay();$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';$('historyCount').textContent=fmt(Object.values(displayCounts).reduce((a,b)=>a+b,0))+' items';const uniqueDropEntry=(!state.pending?state.lastRaid.find(x=>x.item&&x.item.kind==='unique'):null)||null;const lastHasUnique=!!uniqueDropEntry;$('heroChest').classList.remove('awaiting');$('heroChest').classList.toggle('open',lastHasUnique);$('heroChest').classList.toggle('unique-mode',lastHasUnique);if(uniqueDropEntry){const hImg=$('heroUniqueImg');hImg.dataset.forItem=uniqueDropEntry.item.name;resolveItemSprite(uniqueDropEntry.item).then(url=>{if(hImg.dataset.forItem===uniqueDropEntry.item.name&&url){hImg.src=url;hImg.style.display='block';}else{hImg.style.display='none';}});}else{$('heroUniqueImg').removeAttribute('src');$('heroUniqueImg').style.display='none';}$('stageLabel').textContent=state.pending?'Unique chest awaiting reveal':lastHasUnique?'Unique Loot Obtained!':(state.raids>0?'Standard Loot Found':'Awaiting your reward');
  const last=$('lastRaid');$('lastRaidLabel').textContent=state.raids?`Raid #${fmt(state.raids)} · ${state.lastRaid.length} drops`:'No raids yet';if(!state.lastRaid.length){last.innerHTML='<div class="empty" style="grid-column:1/-1">Your most recent raid rewards will appear here.<br>Each raid will show its drops separately.</div>';}else{last.innerHTML=state.lastRaid.map(x=>{
  const hiddenUnique=!!x.pending;
  const displayName=hiddenUnique?'Mystery unique':x.item.name;
@@ -2651,6 +2682,7 @@ function saveSession(){
    raids:state.raids,
    purples:state.purples,
    expectedPurples:state.expectedPurples,
+   lastUnique:state.lastUnique,
    dry:state.dry,
    bestDry:state.bestDry,
    gp:state.gp,
@@ -2700,6 +2732,11 @@ function restoreSavedSession(){
 
  state.raids=num(s.raids);
  state.purples=num(s.purples);
+ if(s.lastUnique&&typeof s.lastUnique.name==='string'&&itemByName(s.lastUnique.name)){
+  state.lastUnique={name:s.lastUnique.name,raid:num(s.lastUnique.raid)};
+ }else{
+  state.lastUnique=null;
+ }
  if(typeof s.expectedPurples==='number'&&isFinite(s.expectedPurples)&&s.expectedPurples>=0){
   state.expectedPurples=s.expectedPurples;
  }else{
