@@ -589,11 +589,132 @@ button { cursor: pointer; color: inherit; }
 
 .right-col {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .right-col .log {
   max-height: 760px;
   min-height: 220px;
+}
+
+.stop-unique-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid #3c4638;
+  border-radius: 7px;
+  background: rgba(12, 16, 12, 0.72);
+  font-size: 10px;
+  color: #cbd6c5;
+}
+
+.stop-unique-row label {
+  margin: 0 !important;
+  cursor: pointer;
+  gap: 8px;
+  justify-content: flex-start !important;
+}
+
+.stop-unique-row input[type="checkbox"] {
+  accent-color: var(--moss-green);
+  flex-shrink: 0;
+}
+
+.target-log-box {
+  margin-top: 10px;
+  border: 1px solid #3c4638;
+  border-radius: 7px;
+  background: rgba(12, 16, 12, 0.72);
+  overflow: hidden;
+}
+
+.target-log-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 0;
+  background: rgba(20, 26, 20, 0.85);
+  color: #d6e0d1;
+  font-size: 10px;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.target-log-toggle:hover {
+  background: rgba(105, 184, 50, 0.12);
+  color: var(--lime-glow);
+}
+
+.target-log-chevron {
+  font-size: 10px;
+  color: var(--lime-glow);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.target-log-box.open .target-log-chevron {
+  transform: rotate(180deg);
+}
+
+.target-log-panel {
+  display: none;
+  padding: 8px 10px 10px;
+  border-top: 1px solid rgba(60, 70, 56, 0.75);
+}
+
+.target-log-box.open .target-log-panel {
+  display: block;
+}
+
+.target-log-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.target-log-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  max-height: 156px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.target-log-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  color: #d6e0d1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.target-log-item:hover {
+  background: rgba(105, 184, 50, 0.12);
+}
+
+.target-log-item input[type="checkbox"] {
+  accent-color: var(--lime-glow);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.target-log-item.selected {
+  background: rgba(105, 184, 50, 0.16);
+  color: var(--lime-glow);
 }
 
 .contentgrid {
@@ -1462,17 +1583,31 @@ button { cursor: pointer; color: inherit; }
 }
 @media(max-width: 1180px) {
   .layout { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
-  .right-col { grid-column: 1 / -1; }
+  .right-col { grid-column: 1 / -1; width: 100%; }
   .right-col .log { max-height: 420px; min-height: 0; }
 }
 @media(max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
+  .layout { grid-template-columns: 1fr; gap: 18px; }
+  .main, .contentgrid, .right-col, .panel, .box { width: 100%; min-width: 0; max-width: 100%; }
   .settings { order: 2; }
+  .right-col { order: 3; }
   .hero { grid-template-columns: 1fr .8fr; }
   .stats { grid-template-columns: repeat(3, 1fr); }
 }
 @media(max-width: 620px) {
   html, body, button, .chest, .modal, .modalback { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .wrap { padding: 14px 14px 28px; }
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .main { gap: 16px; }
+  .contentgrid { grid-template-columns: 1fr; gap: 16px; }
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-copy { padding: 20px 18px 10px; }
+  .chest-stage { padding: 10px 16px 24px; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .collection { grid-template-columns: 1fr; }
+  .right-col { order: 3; grid-column: 1 / -1; width: 100%; }
+  .right-col .box { padding: 15px; }
+  .right-col .log { max-height: 360px; min-height: 0; }
   #rollBtn { min-height: 62px; padding: 18px 20px; font-size: 14px; letter-spacing: 1.2px; }
 }
 </style>
@@ -1613,8 +1748,31 @@ button { cursor: pointer; color: inherit; }
     <small id="deathsHint">Each death costs 10% of expected points (0 pts lost). Only affects personal unique roll.</small>
   </div>
   <div class="field"><label>Roll mode</label><div class="seg" id="mode"><button data-mode="single" class="active">Single</button><button data-mode="batch">Batch</button><button data-mode="auto">Auto</button></div></div>
-  <div class="field" id="batchField" style="display:none"><label for="batchCount">Number of raids</label><input id="batchCount" type="number" min="1" max="100000" value="100"></div>
-  <div class="field" id="autoField" style="display:none"><label for="autoDelay">Delay between raids</label><select id="autoDelay" class="select"><option value="0.6">1-Tick (0.6s)</option><option value="1">1 second</option><option value="2" selected>2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
+  <div class="field" id="batchField" style="display:none">
+    <label for="batchCount">Number of raids</label>
+    <input id="batchCount" type="number" min="1" max="100000" value="100">
+    <div class="stop-unique-row">
+      <label class="checkline" for="batchStopUnique"><input type="checkbox" id="batchStopUnique"> Stop if unique/pet obtained</label>
+    </div>
+  </div>
+  <div class="field" id="autoField" style="display:none">
+    <label for="autoDelay">Delay between raids</label>
+    <select id="autoDelay" class="select"><option value="0.6" selected>1-Tick (0.6s)</option><option value="1">1 second</option><option value="2">2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
+    <div class="target-log-box" id="autoTargetLogBox">
+      <button type="button" class="target-log-toggle" id="autoTargetLogToggle" aria-expanded="false" aria-controls="autoTargetLogPanel">
+        <span id="autoTargetLogLabel">Stop on collection log items (0 selected)</span>
+        <span class="target-log-chevron" id="autoTargetLogChevron">▾</span>
+      </button>
+      <div class="target-log-panel" id="autoTargetLogPanel">
+        <div class="target-log-actions">
+          <button type="button" class="reset-link" id="selectAllAutoTargetsBtn">Select all</button>
+          <button type="button" class="reset-link" id="clearAutoTargetsBtn">Clear</button>
+        </div>
+        <div class="target-log-list" id="autoTargetLogList"></div>
+        <small>Stops auto roll if any selected collection log item drops; you must restart manually.</small>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Simulation controls</label><div class="actions"><button class="primary" id="rollBtn">ROLL LOOT</button><button class="secondary" id="pauseBtn" disabled>PAUSE</button><button class="secondary" id="resumeBtn" disabled>RESUME</button></div><div class="auto-status" id="runStatus"></div></div>
   <div class="field"><label>Options</label><label class="checkline"><input type="checkbox" id="sound" checked> Sound effects</label><label class="checkline" style="margin-top:9px"><input type="checkbox" id="prices" checked> Include GP estimates</label><small id="priceHint">GP totals pull live OSRS Wiki Grand Exchange prices on load, with hardcoded fallbacks if offline.</small></div>
   <div class="actions"><button class="secondary" id="exportBtn">EXPORT CSV</button><button class="danger" id="resetBtn">RESET SESSION</button></div>
@@ -1836,6 +1994,102 @@ function setDefaultContribution(){
  $('contrib').value=Number.isInteger(equalPct)?equalPct:equalPct.toFixed(2).replace(/\.?0+$/,'');
 }
 
+const collectionLogItems=[...uniques,...tertiaries];
+const selectedAutoStopItems=new Set();
+let autoTargetDropdownOpen=false;
+
+function syncAutoTargetDropdown(){
+ const box=$('autoTargetLogBox');
+ const toggle=$('autoTargetLogToggle');
+ if(box)box.classList.toggle('open',autoTargetDropdownOpen);
+ if(toggle)toggle.setAttribute('aria-expanded',autoTargetDropdownOpen?'true':'false');
+}
+
+function updateAutoTargetLabel(){
+ const lbl=$('autoTargetLogLabel');
+ if(!lbl)return;
+ const count=selectedAutoStopItems.size;
+ lbl.textContent=count>0?`Stop on collection log items (${count} selected)`:'Stop on collection log items (0 selected)';
+}
+
+function renderAutoTargetSelector(){
+ const list=$('autoTargetLogList');
+ if(!list)return;
+ list.innerHTML=collectionLogItems.map(item=>{
+  const checked=selectedAutoStopItems.has(item.name);
+  const safeId='autoTarget_'+item.name.replace(/[^a-zA-Z0-9_-]/g,'_');
+  return `<label class="target-log-item${checked?' selected':''}" for="${safeId}"><input type="checkbox" id="${safeId}" value="${esc(item.name)}"${checked?' checked':''}><span>${esc(item.name)}</span></label>`;
+ }).join('');
+ list.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+  cb.addEventListener('change',()=>{
+   const itemName=cb.value;
+   if(cb.checked)selectedAutoStopItems.add(itemName);
+   else selectedAutoStopItems.delete(itemName);
+   const row=cb.closest('.target-log-item');
+   if(row)row.classList.toggle('selected',cb.checked);
+   updateAutoTargetLabel();
+   scheduleSave();
+  });
+ });
+ updateAutoTargetLabel();
+ syncAutoTargetDropdown();
+}
+
+renderAutoTargetSelector();
+
+const autoTargetLogToggle=$('autoTargetLogToggle');
+if(autoTargetLogToggle){
+ autoTargetLogToggle.addEventListener('click',()=>{
+  autoTargetDropdownOpen=!autoTargetDropdownOpen;
+  syncAutoTargetDropdown();
+ });
+}
+
+const selectAllAutoTargetsBtn=$('selectAllAutoTargetsBtn');
+if(selectAllAutoTargetsBtn){
+ selectAllAutoTargetsBtn.addEventListener('click',()=>{
+  selectedAutoStopItems.clear();
+  for(const item of collectionLogItems)selectedAutoStopItems.add(item.name);
+  renderAutoTargetSelector();
+  scheduleSave();
+ });
+}
+
+const clearAutoTargetsBtn=$('clearAutoTargetsBtn');
+if(clearAutoTargetsBtn){
+ clearAutoTargetsBtn.addEventListener('click',()=>{
+  selectedAutoStopItems.clear();
+  renderAutoTargetSelector();
+  scheduleSave();
+ });
+}
+
+function isStopUniquePetEnabled(){
+ if(state.mode==='batch')return !!($('batchStopUnique')&&$('batchStopUnique').checked);
+ return false;
+}
+
+function getMatchedAutoStopItems(){
+ if(!selectedAutoStopItems.size)return [];
+ const matched=[];
+ for(const entry of (state.lastRaid||[])){
+  const itemName=entry&&entry.item&&entry.item.name;
+  if(itemName&&selectedAutoStopItems.has(itemName)&&!matched.includes(itemName)){
+   matched.push(itemName);
+  }
+ }
+ return matched;
+}
+
+function stopAutoManually(reasonText){
+ clearInterval(state.timer);
+ state.running=false;
+ state.paused=false;
+ state.batchRemaining=0;
+ syncButtons();
+ if($('runStatus')&&reasonText)$('runStatus').textContent=reasonText;
+}
+
 function setMode(mode){
  if(mode!==state.mode && state.running){clearInterval(state.timer);state.running=false;state.paused=false;state.batchRemaining=0;$('runStatus').textContent='Previous run stopped · mode changed.';}
  state.mode=mode;document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));$('batchField').style.display=mode==='batch'?'block':'none';$('autoField').style.display=mode==='auto'?'block':'none';$('rollBtn').textContent=mode==='single'?'ROLL LOOT':mode==='batch'?'ROLL BATCH':'START AUTO ROLL';syncButtons();
@@ -1977,9 +2231,12 @@ function rollRaid(){
  }
  const tertDrops=runTertiaries(rolledSet,hadPetBefore);
  finalizeRollAdded(rolledSet);
- const firstPetEntry=tertDrops.find(d=>d&&d.item&&d.item.name==='Orion (pet)'&&d.isFirstPet);
+ const anyPetEntry=tertDrops.find(d=>d&&d.item&&d.item.name==='Orion (pet)');
+ const firstPetEntry=anyPetEntry&&anyPetEntry.isFirstPet?anyPetEntry:null;
  const gotFirstPet=!!firstPetEntry;
+ const gotAnyPet=!!anyPetEntry;
  const petItem=gotFirstPet?firstPetEntry.item:null;
+ const stopOnRare=isStopUniquePetEnabled();
  state.pendingModal=(personalPurple||gotFirstPet)?{
   unique:personalPurple?mainDrop:null,
   pet:gotFirstPet?petItem:null,
@@ -1989,12 +2246,24 @@ function rollRaid(){
  render();
  if(personalPurple){
   showUnique(mainDrop);
-  stopAuto(true);
+  if(stopOnRare&&state.mode==='batch'){
+   stopAutoManually(`Stopped batch: obtained ${mainDrop.name}.`);
+  }else{
+   stopAuto(true);
+  }
   return true;
  }
  if(gotFirstPet){
   showFirstPetModal(petItem);
-  stopAuto(true);
+  if(stopOnRare&&state.mode==='batch'){
+   stopAutoManually('Stopped batch: obtained Orion (pet).');
+  }else{
+   stopAuto(true);
+  }
+  return true;
+ }
+ if(stopOnRare&&gotAnyPet&&state.mode==='batch'){
+  stopAutoManually('Stopped batch: obtained Orion (pet).');
   return true;
  }
  return false;
@@ -2176,8 +2445,46 @@ document.addEventListener('keydown',e=>{
  }
 });
 function oneRoll(){if(state.pending)return;return rollRaid()}
-function continueBatch(){if(!state.running||state.paused||state.pending)return;if(state.batchRemaining<=0){state.running=false;state.batchRemaining=0;syncButtons();$('runStatus').textContent='Batch complete.';return;}state.batchRemaining--;const purple=rollRaid();if(!purple){if(state.batchRemaining>0){setTimeout(continueBatch,0)}else{state.running=false;syncButtons();$('runStatus').textContent='Batch complete.'}}else{$('runStatus').textContent=`Purple! ${state.batchRemaining} batch raids waiting.`;}}
-function scheduleAuto(){if(!state.running||state.paused||state.pending)return;const delayVal=$('autoDelay').value;const delayLabel=delayVal==='0.6'?'1-Tick (0.6s)':delayVal+'s';const ms=+delayVal*1000;$('runStatus').textContent=`Auto rolling · next raid in ${delayLabel}`;$('progressBar').style.width='0%';let start=Date.now();clearInterval(state.timer);state.timer=setInterval(()=>{let pct=Math.min(100,(Date.now()-start)/ms*100);$('progressBar').style.width=pct+'%';if(pct>=100){clearInterval(state.timer);if(state.running&&!state.paused&&!state.pending){const purple=rollRaid();if(!purple)scheduleAuto();}}},50)}
+function continueBatch(){
+ if(!state.running||state.paused||state.pending)return;
+ if(state.batchRemaining<=0){state.running=false;state.batchRemaining=0;syncButtons();$('runStatus').textContent='Batch complete.';return;}
+ state.batchRemaining--;
+ const stopped=rollRaid();
+ if(!state.running)return;
+ if(!stopped){
+  if(state.batchRemaining>0){setTimeout(continueBatch,0)}
+  else{state.running=false;syncButtons();$('runStatus').textContent='Batch complete.'}
+ }else{
+  $('runStatus').textContent=`Purple! ${state.batchRemaining} batch raids waiting.`;
+ }
+}
+function scheduleAuto(){
+ if(!state.running||state.paused||state.pending)return;
+ const delayVal=$('autoDelay').value;
+ const delayLabel=delayVal==='0.6'?'1-Tick (0.6s)':delayVal+'s';
+ const ms=+delayVal*1000;
+ $('runStatus').textContent=`Auto rolling · next raid in ${delayLabel}`;
+ $('progressBar').style.width='0%';
+ let start=Date.now();
+ clearInterval(state.timer);
+ state.timer=setInterval(()=>{
+  let pct=Math.min(100,(Date.now()-start)/ms*100);
+  $('progressBar').style.width=pct+'%';
+  if(pct>=100){
+   clearInterval(state.timer);
+   if(state.running&&!state.paused&&!state.pending){
+    const stopped=rollRaid();
+    if(!state.running)return;
+    const matchedTargets=getMatchedAutoStopItems();
+    if(matchedTargets.length){
+     stopAutoManually(`Stopped auto roll: pulled ${matchedTargets.join(', ')}. Restart manually.`);
+     return;
+    }
+    if(!stopped)scheduleAuto();
+   }
+  }
+ },50);
+}
 function stopAuto(interrupt=false){clearInterval(state.timer);if(interrupt){$('runStatus').textContent='Paused for unique chest · open it to continue.';} }
 function syncButtons(){$('pauseBtn').disabled=!state.running||state.paused;$('resumeBtn').disabled=!state.running||!state.paused;$('rollBtn').disabled=state.running||!!state.pending;}
 $('rollBtn').addEventListener('click',()=>{if(state.pending)return;if(state.mode==='single'){oneRoll();return;}state.running=true;state.paused=false;syncButtons();if(state.mode==='batch'){state.batchRemaining=Math.max(1,Math.min(100000,parseInt($('batchCount').value)||1));$('runStatus').textContent=`Batch running · ${state.batchRemaining} raids queued` ;continueBatch();}else{scheduleAuto();}});
@@ -2699,7 +3006,9 @@ function saveSession(){
     batchCount:$('batchCount').value,
     autoDelay:$('autoDelay').value,
     sound:$('sound').checked,
-    prices:$('prices').checked
+    prices:$('prices').checked,
+    batchStopUnique:$('batchStopUnique')?$('batchStopUnique').checked:false,
+    autoStopItems:[...selectedAutoStopItems]
    }
   }));
  }catch(e){}
@@ -2727,6 +3036,14 @@ function restoreSavedSession(){
  if(hasOption($('autoDelay'),st.autoDelay))$('autoDelay').value=st.autoDelay;
  if(typeof st.sound==='boolean')$('sound').checked=st.sound;
  if(typeof st.prices==='boolean')$('prices').checked=st.prices;
+ if($('batchStopUnique'))$('batchStopUnique').checked=st.batchStopUnique===true;
+ selectedAutoStopItems.clear();
+ if(Array.isArray(st.autoStopItems)){
+  for(const n of st.autoStopItems){
+   if(collectionLogItems.some(x=>x.name===n))selectedAutoStopItems.add(n);
+  }
+ }
+ renderAutoTargetSelector();
  updateRates();
  if(['single','batch','auto'].includes(st.mode))setMode(st.mode);
 
@@ -2761,9 +3078,11 @@ function restoreSavedSession(){
  }
 }
 
-['team','contrib','deaths','batchCount','autoDelay','sound','prices'].forEach(id=>{
- $(id).addEventListener('change',scheduleSave);
- $(id).addEventListener('input',scheduleSave);
+['team','contrib','deaths','batchCount','autoDelay','sound','prices','batchStopUnique'].forEach(id=>{
+ if($(id)){
+  $(id).addEventListener('change',scheduleSave);
+  $(id).addEventListener('input',scheduleSave);
+ }
 });
 $('mode').addEventListener('click',scheduleSave);
 $('resetContribBtn').addEventListener('click',scheduleSave);
