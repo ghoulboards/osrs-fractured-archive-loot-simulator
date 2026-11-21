@@ -76,9 +76,9 @@ button { cursor: pointer; color: inherit; }
   z-index: 1;
   isolation: isolate;
   width: 100%;
-  max-width: 1920px;
+  max-width: 2140px;
   margin: 0 auto;
-  padding: 22px 34px 32px;
+  padding: 22px 28px 32px;
   transform-origin: top center;
 }
 
@@ -174,8 +174,8 @@ button { cursor: pointer; color: inherit; }
 
 .layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 360px;
-  gap: 22px;
+  grid-template-columns: 325px minmax(0, 1.15fr) 415px;
+  gap: 24px;
   align-items: start;
 }
 
@@ -1578,11 +1578,11 @@ button { cursor: pointer; color: inherit; }
 }
 
 @media(min-width: 1650px) {
-  .layout { grid-template-columns: 310px minmax(0, 1fr) 410px; }
+  .layout { grid-template-columns: 345px minmax(0, 1.2fr) 460px; }
   .collection { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media(max-width: 1180px) {
-  .layout { grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+  .layout { grid-template-columns: 315px minmax(0, 1fr); align-items: start; }
   .right-col { grid-column: 1 / -1; width: 100%; }
   .right-col .log { max-height: 420px; min-height: 0; }
 }
