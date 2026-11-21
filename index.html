@@ -1581,59 +1581,52 @@ button { cursor: pointer; color: inherit; }
   .layout { grid-template-columns: 310px minmax(0, 1fr) 410px; }
   .collection { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media(max-width: 1180px) {
-  .layout {
+@media(max-width: 1279px) {
+  html, body {
+    overflow-x: hidden;
+  }
+  .wrap.mobile-desktop-scale {
+    width: 1280px;
+    max-width: 1280px;
+    min-width: 1280px;
+    transform-origin: top left;
+  }
+  .wrap.mobile-desktop-scale .layout {
     grid-template-columns: 300px minmax(0, 1fr) 360px;
     gap: 22px;
     align-items: start;
   }
-  .right-col {
+  .wrap.mobile-desktop-scale .right-col {
     grid-column: auto;
-    width: auto;
+    order: 0;
+    width: 360px;
     min-width: 0;
   }
-  .right-col .log {
+  .wrap.mobile-desktop-scale .settings {
+    order: 0;
+  }
+  .wrap.mobile-desktop-scale .main {
+    order: 0;
+  }
+  .wrap.mobile-desktop-scale .right-col .log {
     max-height: 760px;
     min-height: 220px;
   }
+  .wrap.mobile-desktop-scale .hero {
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+  }
+  .wrap.mobile-desktop-scale .stats {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .wrap.mobile-desktop-scale .contentgrid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+  }
+  .wrap.mobile-desktop-scale .collection {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media(max-width: 900px) {
-  .layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-    align-items: start;
-  }
-  .main, .contentgrid, .right-col, .panel, .box {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    position: relative;
-    grid-column: 1 / -1;
-  }
-  .settings { order: 2; grid-column: 1 / -1; }
-  .main { order: 1; grid-column: 1 / -1; }
-  .right-col { order: 3; grid-column: 1 / -1; }
-  .right-col .log { max-height: 420px; min-height: 0; }
-  .hero { grid-template-columns: 1fr .8fr; }
-  .stats { grid-template-columns: repeat(3, 1fr); }
-}
-@media(max-width: 620px) {
   html, body, button, .chest, .modal, .modalback { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-  .wrap { padding: 14px 14px 28px; width: 100%; max-width: 100vw; overflow-x: hidden; }
-  .layout { grid-template-columns: 1fr; gap: 16px; width: 100%; }
-  .main { order: 1; gap: 16px; grid-column: 1 / -1; width: 100%; }
-  .settings { order: 2; grid-column: 1 / -1; width: 100%; }
-  .right-col { order: 3; grid-column: 1 / -1; width: 100%; min-width: 0; max-width: 100%; }
-  .right-col .panel, .right-col .box { width: 100%; min-width: 0; max-width: 100%; padding: 15px; }
-  .right-col .log { max-height: 360px; min-height: 0; width: 100%; }
-  .contentgrid { grid-template-columns: 1fr; gap: 16px; width: 100%; }
-  .hero { grid-template-columns: 1fr; min-height: auto; }
-  .hero-copy { padding: 20px 18px 10px; }
-  .chest-stage { padding: 10px 16px 24px; }
-  .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .collection { grid-template-columns: 1fr; }
-  #rollBtn { min-height: 62px; padding: 18px 20px; font-size: 14px; letter-spacing: 1.2px; }
 }
 </style>
 </head>
@@ -3163,15 +3156,33 @@ if(state.pending)showUnique(state.pending);
     if (!wrap) return;
     wrap.style.zoom = '1';
     wrap.style.transform = 'none';
+    wrap.style.width = '';
+    wrap.style.maxWidth = '';
+    wrap.style.minWidth = '';
     document.body.style.height = 'auto';
+    document.body.style.minHeight = '100vh';
 
-    const vw = Math.min(document.documentElement.clientWidth || 0, window.innerWidth || Infinity);
-    if (vw <= 900) {
-      wrap.style.zoom = '1';
-      wrap.style.transform = 'none';
+    const vw = Math.min(document.documentElement.clientWidth || window.innerWidth, window.innerWidth || document.documentElement.clientWidth);
+    if (vw < 1280) {
+      wrap.classList.add('mobile-desktop-scale');
+      const baseWidth = 1280;
+      const scaleX = vw / baseWidth;
+      wrap.style.width = baseWidth + 'px';
+      wrap.style.maxWidth = baseWidth + 'px';
+      wrap.style.minWidth = baseWidth + 'px';
+      wrap.style.transformOrigin = 'top left';
+      wrap.style.transform = 'scale(' + scaleX + ')';
+      requestAnimationFrame(() => {
+        const rect = wrap.getBoundingClientRect();
+        if (rect && rect.height > 0) {
+          document.body.style.height = Math.ceil(rect.height) + 'px';
+          document.body.style.minHeight = Math.ceil(rect.height) + 'px';
+        }
+      });
       return;
     }
 
+    wrap.classList.remove('mobile-desktop-scale');
     const vh = document.documentElement.clientHeight;
     const contentHeight = wrap.offsetHeight;
     const scaleY = contentHeight > 0 ? vh / contentHeight : 1;
@@ -3200,7 +3211,7 @@ if(state.pending)showUnique(state.pending);
 </script>
 <script>
 (function() {
-  if (window.matchMedia && !window.matchMedia('(max-width: 900px)').matches) return;
+  if (window.matchMedia && !window.matchMedia('(max-width: 620px)').matches) return;
   let lastTapTime = 0;
   let multiTouchActive = false;
 
