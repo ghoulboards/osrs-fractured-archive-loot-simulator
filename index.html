@@ -1752,12 +1752,15 @@ button { cursor: pointer; color: inherit; }
     <label for="batchCount">Number of raids</label>
     <input id="batchCount" type="number" min="1" max="100000" value="100">
     <div class="stop-unique-row">
-      <label class="checkline" for="batchStopUnique"><input type="checkbox" id="batchStopUnique"> Stop if unique/pet obtained</label>
+      <label class="checkline" for="batchStopUnique"><input type="checkbox" id="batchStopUnique" checked> Stop if unique obtained</label>
     </div>
   </div>
   <div class="field" id="autoField" style="display:none">
     <label for="autoDelay">Delay between raids</label>
     <select id="autoDelay" class="select"><option value="0.6" selected>1-Tick (0.6s)</option><option value="1">1 second</option><option value="2">2 seconds</option><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
+    <div class="stop-unique-row">
+      <label class="checkline" for="autoStopUnique"><input type="checkbox" id="autoStopUnique" checked> Stop if unique obtained</label>
+    </div>
     <div class="target-log-box" id="autoTargetLogBox">
       <button type="button" class="target-log-toggle" id="autoTargetLogToggle" aria-expanded="false" aria-controls="autoTargetLogPanel">
         <span id="autoTargetLogLabel">Stop on collection log items (0 selected)</span>
@@ -2035,7 +2038,23 @@ function renderAutoTargetSelector(){
  syncAutoTargetDropdown();
 }
 
+function syncAutoStopUniqueWithTargets(){
+ if(selectedAutoStopItems.size>0&&$('autoStopUnique')){
+  $('autoStopUnique').checked=false;
+ }
+}
+
 renderAutoTargetSelector();
+
+const autoTargetLogListEl=$('autoTargetLogList');
+if(autoTargetLogListEl){
+ autoTargetLogListEl.addEventListener('change',e=>{
+  if(e.target&&e.target.matches('input[type="checkbox"]')){
+   syncAutoStopUniqueWithTargets();
+   scheduleSave();
+  }
+ });
+}
 
 const autoTargetLogToggle=$('autoTargetLogToggle');
 if(autoTargetLogToggle){
@@ -2051,6 +2070,7 @@ if(selectAllAutoTargetsBtn){
   selectedAutoStopItems.clear();
   for(const item of collectionLogItems)selectedAutoStopItems.add(item.name);
   renderAutoTargetSelector();
+  syncAutoStopUniqueWithTargets();
   scheduleSave();
  });
 }
@@ -2064,9 +2084,20 @@ if(clearAutoTargetsBtn){
  });
 }
 
-function isStopUniquePetEnabled(){
+function isStopUniqueEnabled(){
  if(state.mode==='batch')return !!($('batchStopUnique')&&$('batchStopUnique').checked);
+ if(state.mode==='auto')return !!($('autoStopUnique')&&$('autoStopUnique').checked);
  return false;
+}
+
+function hasCollectionLogItem(itemName){
+ if(!itemName)return false;
+ return !!(state.owned&&state.owned.has(itemName))||((state.counts&&state.counts[itemName])||0)>0;
+}
+
+function shouldStopForNewUnique(itemName){
+ if(!isStopUniqueEnabled()||!itemName)return false;
+ return !hasCollectionLogItem(itemName);
 }
 
 function getMatchedAutoStopItems(){
@@ -2236,7 +2267,8 @@ function rollRaid(){
  const gotFirstPet=!!firstPetEntry;
  const gotAnyPet=!!anyPetEntry;
  const petItem=gotFirstPet?firstPetEntry.item:null;
- const stopOnRare=isStopUniquePetEnabled();
+ const hadUniqueBefore=personalPurple?hasCollectionLogItem(mainDrop.name):false;
+ const stopForNewUnique=personalPurple?shouldStopForNewUnique(mainDrop.name):false;
  state.pendingModal=(personalPurple||gotFirstPet)?{
   unique:personalPurple?mainDrop:null,
   pet:gotFirstPet?petItem:null,
@@ -2246,8 +2278,13 @@ function rollRaid(){
  render();
  if(personalPurple){
   showUnique(mainDrop);
-  if(stopOnRare&&state.mode==='batch'){
-   stopAutoManually(`Stopped batch: obtained ${mainDrop.name}.`);
+  if(stopForNewUnique&&state.mode==='batch'){
+   stopAutoManually(`Stopped batch: obtained new collection log unique ${mainDrop.name}.`);
+  }else if(stopForNewUnique&&state.mode==='auto'){
+   stopAutoManually(`Stopped auto roll: obtained new collection log unique ${mainDrop.name}. Restart manually.`);
+  }else if(state.mode==='auto'&&hadUniqueBefore){
+   stopAuto(false);
+   if($('runStatus'))$('runStatus').textContent=`${mainDrop.name} already in collection log · continuing auto roll after chest...`;
   }else{
    stopAuto(true);
   }
@@ -2255,15 +2292,7 @@ function rollRaid(){
  }
  if(gotFirstPet){
   showFirstPetModal(petItem);
-  if(stopOnRare&&state.mode==='batch'){
-   stopAutoManually('Stopped batch: obtained Orion (pet).');
-  }else{
-   stopAuto(true);
-  }
-  return true;
- }
- if(stopOnRare&&gotAnyPet&&state.mode==='batch'){
-  stopAutoManually('Stopped batch: obtained Orion (pet).');
+  stopAuto(true);
   return true;
  }
  return false;
@@ -3007,7 +3036,8 @@ function saveSession(){
     autoDelay:$('autoDelay').value,
     sound:$('sound').checked,
     prices:$('prices').checked,
-    batchStopUnique:$('batchStopUnique')?$('batchStopUnique').checked:false,
+    batchStopUnique:$('batchStopUnique')?$('batchStopUnique').checked:true,
+    autoStopUnique:$('autoStopUnique')?$('autoStopUnique').checked:true,
     autoStopItems:[...selectedAutoStopItems]
    }
   }));
@@ -3036,7 +3066,8 @@ function restoreSavedSession(){
  if(hasOption($('autoDelay'),st.autoDelay))$('autoDelay').value=st.autoDelay;
  if(typeof st.sound==='boolean')$('sound').checked=st.sound;
  if(typeof st.prices==='boolean')$('prices').checked=st.prices;
- if($('batchStopUnique'))$('batchStopUnique').checked=st.batchStopUnique===true;
+ if($('batchStopUnique'))$('batchStopUnique').checked=typeof st.batchStopUnique==='boolean'?st.batchStopUnique:true;
+ if($('autoStopUnique'))$('autoStopUnique').checked=typeof st.autoStopUnique==='boolean'?st.autoStopUnique:true;
  selectedAutoStopItems.clear();
  if(Array.isArray(st.autoStopItems)){
   for(const n of st.autoStopItems){
@@ -3078,7 +3109,7 @@ function restoreSavedSession(){
  }
 }
 
-['team','contrib','deaths','batchCount','autoDelay','sound','prices','batchStopUnique'].forEach(id=>{
+['team','contrib','deaths','batchCount','autoDelay','sound','prices','batchStopUnique','autoStopUnique'].forEach(id=>{
  if($(id)){
   $(id).addEventListener('change',scheduleSave);
   $(id).addEventListener('input',scheduleSave);
