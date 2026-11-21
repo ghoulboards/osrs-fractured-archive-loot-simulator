@@ -156,11 +156,26 @@ button { cursor: pointer; color: inherit; }
 
 .topright {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
   color: var(--muted);
   font-size: 11px;
+}
+
+.topright-pills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.created-by-tag {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.4px;
+  line-height: 1.2;
 }
 
 .pill {
@@ -1763,10 +1778,13 @@ button { cursor: pointer; color: inherit; }
     </div>
   </div>
   <div class="topright">
-    <span class="pill">PERSONAL LOOT SIMULATOR</span>
-    <span class="pill">LOCAL SESSION</span>
-    <span class="pill" id="priceStatus">LIVE GE PRICES · LOADING…</span>
-    <span class="pill" id="spriteStatus">LOADING ITEM SPRITES…</span>
+    <span class="created-by-tag">Created by Nonchallent</span>
+    <div class="topright-pills">
+      <span class="pill">PERSONAL LOOT SIMULATOR</span>
+      <span class="pill">LOCAL SESSION</span>
+      <span class="pill" id="priceStatus">LIVE GE PRICES · LOADING…</span>
+      <span class="pill" id="spriteStatus">LOADING ITEM SPRITES…</span>
+    </div>
   </div>
 </header>
 
@@ -1904,7 +1922,7 @@ button { cursor: pointer; color: inherit; }
 </aside>
 </div>
 
-<div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Session data stays in this browser tab.</div>
+<div class="footer">Independent fan-made simulator · Not affiliated with Jagex or Old School RuneScape · Created by Nonchallent; hosted by Ghoulboards in GitHub.<br>Drop mechanics reference: <a href="https://oldschool.runescape.wiki/w/Chest_(The_Fractured_Archive)" target="_blank" rel="noopener">OSRS Wiki — Chest (The Fractured Archive)</a> · Session data stays in this browser tab.</div>
 </div>
 
 
