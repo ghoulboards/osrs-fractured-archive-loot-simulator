@@ -2060,8 +2060,35 @@ function setDefaultContribution(){
 }
 
 const collectionLogItems=[...uniques,...tertiaries];
+const nonRepeatableAutoStopItems=new Set([
+ "Archivist's folio (inert)",
+ 'Fragment of whispering wind',
+ 'Fragment of deep water',
+ 'Fragment of living earth',
+ 'Fragment of burning fire'
+]);
 const selectedAutoStopItems=new Set();
 let autoTargetDropdownOpen=false;
+
+function isObtainedNonRepeatableAutoItem(itemName){
+ if(!nonRepeatableAutoStopItems.has(itemName))return false;
+ return !!(state.owned&&state.owned.has(itemName))||((state.counts&&state.counts[itemName])||0)>0;
+}
+
+function getAvailableAutoStopItems(){
+ return collectionLogItems.filter(item=>!isObtainedNonRepeatableAutoItem(item.name));
+}
+
+function pruneObtainedAutoStopItems(){
+ let removed=false;
+ for(const itemName of [...selectedAutoStopItems]){
+  if(isObtainedNonRepeatableAutoItem(itemName)){
+   selectedAutoStopItems.delete(itemName);
+   removed=true;
+  }
+ }
+ return removed;
+}
 
 function syncAutoTargetDropdown(){
  const box=$('autoTargetLogBox');
@@ -2078,9 +2105,17 @@ function updateAutoTargetLabel(){
 }
 
 function renderAutoTargetSelector(){
+ pruneObtainedAutoStopItems();
  const list=$('autoTargetLogList');
  if(!list)return;
- list.innerHTML=collectionLogItems.map(item=>{
+ const availableItems=getAvailableAutoStopItems();
+ if(!availableItems.length){
+  list.innerHTML='<div class="empty" style="padding:12px 6px">All non-repeatable collection log items obtained.</div>';
+  updateAutoTargetLabel();
+  syncAutoTargetDropdown();
+  return;
+ }
+ list.innerHTML=availableItems.map(item=>{
   const checked=selectedAutoStopItems.has(item.name);
   const safeId='autoTarget_'+item.name.replace(/[^a-zA-Z0-9_-]/g,'_');
   return `<label class="target-log-item${checked?' selected':''}" for="${safeId}"><input type="checkbox" id="${safeId}" value="${esc(item.name)}"${checked?' checked':''}><span>${esc(item.name)}</span></label>`;
@@ -2130,7 +2165,7 @@ const selectAllAutoTargetsBtn=$('selectAllAutoTargetsBtn');
 if(selectAllAutoTargetsBtn){
  selectAllAutoTargetsBtn.addEventListener('click',()=>{
   selectedAutoStopItems.clear();
-  for(const item of collectionLogItems)selectedAutoStopItems.add(item.name);
+  for(const item of getAvailableAutoStopItems())selectedAutoStopItems.add(item.name);
   renderAutoTargetSelector();
   syncAutoStopUniqueWithTargets();
   scheduleSave();
@@ -2336,6 +2371,7 @@ function rollRaid(){
   pet:gotFirstPet?petItem:null,
   isFirstPet:gotFirstPet
  }:null;
+ const matchedAutoTargets=state.mode==='auto'?getMatchedAutoStopItems():[];
  playSound((personalPurple||gotFirstPet)?'purple':'roll');
  render();
  if(personalPurple){
@@ -2344,6 +2380,8 @@ function rollRaid(){
    stopAutoManually(`Stopped batch: obtained new collection log unique ${mainDrop.name}.`);
   }else if(stopForNewUnique&&state.mode==='auto'){
    stopAutoManually(`Stopped auto roll: obtained new collection log unique ${mainDrop.name}. Restart manually.`);
+  }else if(matchedAutoTargets.length){
+   stopAutoManually(`Stopped auto roll: pulled ${matchedAutoTargets.join(', ')}. Restart manually.`);
   }else if(state.mode==='auto'&&hadUniqueBefore){
    stopAuto(false);
    if($('runStatus'))$('runStatus').textContent=`${mainDrop.name} already in collection log · continuing auto roll after chest...`;
@@ -2354,7 +2392,15 @@ function rollRaid(){
  }
  if(gotFirstPet){
   showFirstPetModal(petItem);
-  stopAuto(true);
+  if(matchedAutoTargets.length){
+   stopAutoManually(`Stopped auto roll: pulled ${matchedAutoTargets.join(', ')}. Restart manually.`);
+  }else{
+   stopAuto(true);
+  }
+  return true;
+ }
+ if(matchedAutoTargets.length){
+  stopAutoManually(`Stopped auto roll: pulled ${matchedAutoTargets.join(', ')}. Restart manually.`);
   return true;
  }
  return false;
@@ -2566,11 +2612,6 @@ function scheduleAuto(){
    if(state.running&&!state.paused&&!state.pending){
     const stopped=rollRaid();
     if(!state.running)return;
-    const matchedTargets=getMatchedAutoStopItems();
-    if(matchedTargets.length){
-     stopAutoManually(`Stopped auto roll: pulled ${matchedTargets.join(', ')}. Restart manually.`);
-     return;
-    }
     if(!stopped)scheduleAuto();
    }
   }
@@ -2705,6 +2746,7 @@ updateExpectedAndDryDisplay();$('historyCount').textContent=fmt(Object.values(di
  return `<div class="last-drop ${specialClass}"><div class="looticon">${iconHtml}</div><div><div class="lootname">${esc(displayName)}${fiveXBadge}</div><div class="lootmeta">${esc(x.source)}${fiveXMeta}${hiddenUnique?' · Open the unique chest to reveal':''}</div></div><div class="tag ${tagClass}">${hiddenUnique?'HIDDEN':x.qty>1?'×'+fmt(x.qty):'×1'}</div></div>`;
 }).join('')}
  const coll=$('collection');const collectItems=[...uniques,...tertiaries];coll.innerHTML=collectItems.map(x=>{const cnt=displayCounts[x.name]||0;const unobtainedClass=cnt>0?'':' unobtained';return `<div class="collect${unobtainedClass}"><div class="looticon">${lootIconHTML(x)}</div><div style="min-width:0"><strong>${esc(x.name)}</strong><small>${x.kind==='unique'?'Unique':x.kind==='fragment'?'Elemental fragment':'Tertiary'}</small></div><div class="count">${cnt}</div></div>`;}).join('');
+ renderAutoTargetSelector();
  const showPrices=$('prices').checked;const b=$('breakdown');
 const entries=Object.entries(displayCounts).sort((a,b)=>{const itemA=allItems.find(x=>x.name===a[0])||{};const itemB=allItems.find(x=>x.name===b[0])||{};const valA=getItemPrice(itemA)*a[1];const valB=getItemPrice(itemB)*b[1];return valB-valA||b[1]-a[1];});b.innerHTML=entries.length?entries.slice(0,80).map(([name,count])=>{const item=allItems.find(x=>x.name===name)||{};const estTotal=getItemPrice(item)*count;const added=state.recentAdded[name]||0;const addedBadge=added>0?` <span class="loot-added">+${fmt(added)}</span>`:'';const metaText=!showPrices?'GP estimates hidden':estTotal>0?'Est. '+gp(estTotal)+' GP total':'Untradeable / 0 GP';const isUnique=item.kind==='unique';return `<div class="logrow${isUnique?' purple-drop':''}"><div class="looticon">${lootIconHTML(item)}</div><div><div class="lootname">${esc(name)} (${fmt(count)})${addedBadge}</div><div class="lootmeta">${metaText}</div></div><div class="tag${isUnique?' purple':''}">${fmt(count)}</div></div>`}).join(''):'<div class="empty">Your accumulated loot will appear here.</div>';
  hydrateLootSprites();
@@ -3133,7 +3175,7 @@ function restoreSavedSession(){
  selectedAutoStopItems.clear();
  if(Array.isArray(st.autoStopItems)){
   for(const n of st.autoStopItems){
-   if(collectionLogItems.some(x=>x.name===n))selectedAutoStopItems.add(n);
+   if(collectionLogItems.some(x=>x.name===n)&&!isObtainedNonRepeatableAutoItem(n))selectedAutoStopItems.add(n);
   }
  }
  renderAutoTargetSelector();
